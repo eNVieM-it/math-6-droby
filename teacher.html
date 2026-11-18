@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель вчителя — Математика, 6 клас (Краб Гоша)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="firebase-config.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #fef3c7 100%);
+            min-height: 100vh;
+            color: #0f172a;
+        }
+        h1, h2, h3, .heading-font {
+            font-family: 'Montserrat', sans-serif;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #ffffff !important; }
+        }
+    </style>
+</head>
+<body class="pb-16">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-sky-900 text-white shadow-lg sticky top-0 z-40 no-print border-b-4 border-amber-400">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-amber-400 text-sky-950 font-extrabold px-3 py-1 rounded-full text-sm uppercase tracking-wider shadow">
+                    🦀 Панель вчителя
+                </span>
+                <span class="font-bold text-sky-100 hidden sm:inline">6 клас • «Множення і ділення дробів»</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="connectionStatusBadge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-700 text-slate-200">
+                    Перевірка з'єднання...
+                </span>
+                <button id="lockTeacherBtn" onclick="lockTeacherPanel()" class="hidden bg-sky-800 hover:bg-sky-700 text-sky-100 px-3 py-1.5 rounded-xl text-xs font-bold">
+                    <i class="fa-solid fa-lock mr-1"></i> Заблокувати
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- PIN GATE OVERLAY -->
+    <div id="teacherPinOverlay" class="fixed inset-0 z-50 bg-sky-950/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border-4 border-amber-400 overflow-hidden">
+            <div class="bg-sky-900 text-white p-6 text-center">
+                <div class="text-4xl mb-2">🔐👨‍🏫</div>
+                <h1 class="text-xl font-black">Вхід у панель вчителя</h1>
+                <p class="text-sky-200 text-xs mt-1">Для доступу до результатів, фото зошитів та журналу активності введіть PIN-код</p>
+            </div>
+            <form onsubmit="unlockTeacherPanel(event)" class="p-6 space-y-4">
+                <div>
+                    <label for="teacherPinInput" class="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
+                        PIN-код вчителя
+                    </label>
+                    <input type="password" id="teacherPinInput" placeholder="Введіть PIN (за замовч. 2026)" autofocus
+                        class="w-full px-4 py-3 rounded-xl border-2 border-slate-300 font-extrabold text-center text-lg tracking-widest focus:border-sky-600 focus:outline-none">
+                    <p id="pinErrorMsg" class="hidden text-red-600 text-xs font-bold mt-2 text-center">
+                        <i class="fa-solid fa-circle-xmark mr-1"></i> Невірний PIN-код! Спробуйте ще раз.
+                    </p>
+                </div>
+                <button type="submit"
+                    class="w-full bg-amber-400 hover:bg-amber-500 text-sky-950 font-black py-3.5 rounded-2xl shadow-lg transition text-base">
+                    Відкрити панель вчителя
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN TEACHER DASHBOARD -->
+    <main id="teacherMain" class="max-w-6xl mx-auto px-4 mt-6 hidden">
+
+        <!-- Summary Stats Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-2xl p-4 shadow border-2 border-sky-200">
+                <p class="text-xs font-extrabold uppercase text-slate-500">Здано робіт</p>
+                <p id="statTotalCount" class="text-3xl font-black text-sky-900 mt-1">0</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow border-2 border-emerald-200">
+                <p class="text-xs font-extrabold uppercase text-slate-500">Середній бал</p>
+                <p id="statAvgGrade" class="text-3xl font-black text-emerald-700 mt-1">—</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow border-2 border-emerald-200">
+                <p class="text-xs font-extrabold uppercase text-slate-500">Без порушень</p>
+                <p id="statCleanCount" class="text-3xl font-black text-emerald-600 mt-1">0</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow border-2 border-red-200">
+                <p class="text-xs font-extrabold uppercase text-slate-500">З порушеннями</p>
+                <p id="statFlaggedCount" class="text-3xl font-black text-red-600 mt-1">0</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl border-2 border-sky-200 overflow-hidden mb-6">
+            <div class="bg-sky-900 text-white px-6 py-5 flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <span class="text-amber-400 text-xs font-extrabold uppercase tracking-widest">Моніторинг класу наживо</span>
+                    <h2 class="text-2xl font-black mt-0.5">Здані роботи, фото зошитів та античіт-звіт</h2>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <label class="cursor-pointer bg-sky-700 hover:bg-sky-600 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-file-import"></i> Імпорт .json
+                        <input type="file" accept=".json,application/json" multiple class="hidden" onchange="importJsonSubmissions(event)">
+                    </label>
+                    <button onclick="exportTeacherCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-file-csv"></i> Відомість (CSV)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Answer Key Reference Bar -->
+            <div class="bg-amber-50 border-b border-amber-200 px-6 py-3 text-xs text-amber-950 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <strong class="uppercase tracking-wider text-amber-800"><i class="fa-solid fa-key mr-1"></i> Ключ відповідей:</strong>
+                <span><strong>1а)</strong> 2/9</span>
+                <span><strong>1б)</strong> 10</span>
+                <span><strong>1в)</strong> 4 1/2 (4,5)</span>
+                <span><strong>1г)</strong> 2/3</span>
+                <span><strong>1д)</strong> 3</span>
+                <span><strong>1е)</strong> 3/23</span>
+                <span><strong>2)</strong> 16</span>
+                <span><strong>3)</strong> 44</span>
+                <span><strong>4)</strong> 1</span>
+                <span><strong>5)</strong> 90</span>
+                <span><strong>Бонус m:</strong> 50</span>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <button id="filterAllBtn" onclick="setFilter('all')" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-sky-700 text-white">
+                        Всі роботи
+                    </button>
+                    <button id="filterFlaggedBtn" onclick="setFilter('flagged')" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-200 text-slate-700 hover:bg-slate-300">
+                        Лише з перемиканням вкладок / виходом з екрана
+                    </button>
+                </div>
+                <button onclick="togglePinGenerator()" class="text-xs font-bold text-sky-700 hover:text-sky-900 underline">
+                    <i class="fa-solid fa-key mr-1"></i> Змінити PIN-код вчителя
+                </button>
+            </div>
+
+            <!-- PIN Hash Helper Drawer -->
+            <div id="pinGenDrawer" class="hidden px-6 py-4 bg-sky-50 border-b border-sky-200 text-xs">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-bold text-sky-950">Введіть новий PIN:</span>
+                    <input type="text" id="newPinPlain" placeholder="напр. 7491" class="px-3 py-1.5 rounded-lg border border-sky-300 font-bold">
+                    <button onclick="generatePinHashUi()" class="bg-sky-700 text-white px-3 py-1.5 rounded-lg font-bold">Отримати хеш</button>
+                    <span id="newPinHashOut" class="font-mono font-bold text-emerald-800"></span>
+                </div>
+                <p class="text-slate-600 mt-1.5">Скопіюйте отриманий хеш і вставте у <code>TEACHER_PIN_HASH</code> у файлі <code>firebase-config.js</code>.</p>
+            </div>
+
+            <div class="p-6">
+                <div id="teacherEmptyState" class="text-center py-12 text-slate-500">
+                    <div class="text-5xl mb-3">🦀⏳</div>
+                    <p class="font-bold text-lg text-slate-700">Поки що немає зданих робіт</p>
+                    <p class="text-sm mt-1">Коли учні надішлють роботи через <code>index.html</code> (або ви імпортуєте <code>.json</code> файли), результати, фото зошитів та статистика перемикань з'являться тут.</p>
+                </div>
+
+                <div id="teacherSubmissionsList" class="space-y-4"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- PHOTO LIGHTBOX MODAL -->
+    <div id="photoLightbox" class="fixed inset-0 bg-slate-950/90 z-50 hidden flex-col justify-between p-4 no-print">
+        <div class="flex justify-between items-center text-white max-w-5xl mx-auto w-full py-2">
+            <h4 id="lightboxCaption" class="font-bold text-base sm:text-lg text-amber-300">Фото зошита</h4>
+            <div class="flex items-center gap-2">
+                <button onclick="rotateLightboxImage(-90)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-xl text-sm font-bold">
+                    <i class="fa-solid fa-rotate-left"></i> Повернути
+                </button>
+                <button onclick="rotateLightboxImage(90)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-xl text-sm font-bold">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+                <button onclick="closeLightbox()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-extrabold ml-2">
+                    <i class="fa-solid fa-xmark mr-1"></i> Закрити
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 flex items-center justify-center overflow-auto my-2">
+            <img id="lightboxImg" src="" alt="Фото обчислень" class="max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl transition-transform duration-200">
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const cfg = window.GOSHA_CONFIG || {};
+        const TEST_ID = cfg.TEST_ID || 'gosha-math6-droby-v1';
+        const STORAGE_LOCAL_SUBS_KEY = `gosha_local_submissions_${TEST_ID}`;
+        const TEACHER_SESSION_KEY = `gosha_teacher_unlocked_${TEST_ID}`;
+        const HASH_SALT = 'gosha6_2026_';
+        const EXPECTED_PIN_HASH = cfg.TEACHER_PIN_HASH || '5ed5758d'; // 2026
+
+        let cloudSubmissions = [];
+        let localSubmissions = [];
+        let importedSubmissions = [];
+        let currentFilter = 'all';
+        let currentLightboxRotation = 0;
+        let db = null;
+        let isCloudMode = false;
+
+        function fnv1a32(str) {
+            let h = 0x811c9dc5;
+            for (let i = 0; i < str.length; i++) {
+                h ^= str.charCodeAt(i);
+                h = Math.imul(h, 0x01000193);
+            }
+            return (h >>> 0).toString(16).padStart(8, '0');
+        }
+
+        window.hashTeacherPin = function(pin) {
+            return fnv1a32(HASH_SALT + 'teacher_pin:' + String(pin).trim());
+        };
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // --- Teacher PIN Auth ---
+        window.unlockTeacherPanel = function(e) {
+            if (e) e.preventDefault();
+            const pinVal = document.getElementById('teacherPinInput').value.trim();
+            if (window.hashTeacherPin(pinVal) === EXPECTED_PIN_HASH) {
+                sessionStorage.setItem(TEACHER_SESSION_KEY, '1');
+                showUnlockedUI();
+            } else {
+                document.getElementById('pinErrorMsg').classList.remove('hidden');
+            }
+        };
+
+        window.lockTeacherPanel = function() {
+            sessionStorage.removeItem(TEACHER_SESSION_KEY);
+            document.getElementById('teacherPinInput').value = '';
+            document.getElementById('pinErrorMsg').classList.add('hidden');
+            document.getElementById('teacherPinOverlay').classList.remove('hidden');
+            document.getElementById('teacherMain').classList.add('hidden');
+            document.getElementById('lockTeacherBtn').classList.add('hidden');
+        };
+
+        function showUnlockedUI() {
+            document.getElementById('teacherPinOverlay').classList.add('hidden');
+            document.getElementById('teacherMain').classList.remove('hidden');
+            document.getElementById('lockTeacherBtn').classList.remove('hidden');
+            loadLocalSubmissions();
+            renderTeacherDashboard();
+        }
+
+        if (sessionStorage.getItem(TEACHER_SESSION_KEY) === '1') {
+            showUnlockedUI();
+        }
+
+        window.togglePinGenerator = function() {
+            document.getElementById('pinGenDrawer').classList.toggle('hidden');
+        };
+
+        window.generatePinHashUi = function() {
+            const val = document.getElementById('newPinPlain').value.trim();
+            if (!val) return;
+            document.getElementById('newPinHashOut').textContent = `TEACHER_PIN_HASH: "${window.hashTeacherPin(val)}"`;
+        };
+
+        // --- Data Sources (Firebase + localStorage + JSON import) ---
+        function loadLocalSubmissions() {
+            try {
+                localSubmissions = JSON.parse(localStorage.getItem(STORAGE_LOCAL_SUBS_KEY) || '[]');
+            } catch (e) {
+                localSubmissions = [];
+            }
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === STORAGE_LOCAL_SUBS_KEY) {
+                loadLocalSubmissions();
+                renderTeacherDashboard();
+            }
+        });
+
+        async function initCloudSync() {
+            const badge = document.getElementById('connectionStatusBadge');
+            try {
+                const fb = cfg.FIREBASE_CONFIG;
+                if (fb && fb.apiKey && fb.projectId) {
+                    const app = initializeApp(fb);
+                    const auth = getAuth(app);
+                    db = getFirestore(app);
+                    await signInAnonymously(auth);
+                    isCloudMode = true;
+
+                    badge.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500 text-sky-950';
+                    badge.innerHTML = '<i class="fa-solid fa-cloud mr-1"></i> Хмара Firebase активна';
+
+                    const subCol = collection(db, 'artifacts', TEST_ID, 'public', 'data', 'test_submissions');
+                    onSnapshot(subCol, (snapshot) => {
+                        const items = [];
+                        snapshot.forEach((docSnap) => {
+                            items.push({ id: docSnap.id, _source: 'cloud', ...docSnap.data() });
+                        });
+                        cloudSubmissions = items;
+                        renderTeacherDashboard();
+                    }, (error) => {
+                        console.error('Помилка отримання робіт:', error);
+                        badge.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-red-500 text-white';
+                        badge.textContent = 'Помилка доступу до Firebase';
+                    });
+                    return;
+                }
+            } catch (err) {
+                console.warn('Firebase init error:', err);
+            }
+
+            badge.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-amber-400 text-sky-950';
+            badge.innerHTML = '<i class="fa-solid fa-laptop mr-1"></i> Локальний режим / Імпорт JSON';
+        }
+        initCloudSync();
+
+        function getMergedSubmissions() {
+            // Merge cloud, local, and imported avoiding duplicates by (studentName + timestampMs)
+            const map = new Map();
+            const add = (sub, source) => {
+                const key = `${sub.studentName || ''}__${sub.timestampMs || 0}`;
+                if (!map.has(key)) {
+                    map.set(key, { ...sub, _source: sub._source || source });
+                }
+            };
+            cloudSubmissions.forEach(s => add(s, 'cloud'));
+            if (!isCloudMode) {
+                localSubmissions.forEach(s => add(s, 'local'));
+            }
+            importedSubmissions.forEach(s => add(s, 'imported'));
+
+            return Array.from(map.values()).sort((a, b) => (b.timestampMs || 0) - (a.timestampMs || 0));
+        }
+
+        window.importJsonSubmissions = async function(event) {
+            const files = Array.from(event.target.files || []);
+            for (const f of files) {
+                try {
+                    const text = await f.text();
+                    const data = JSON.parse(text);
+                    if (Array.isArray(data)) {
+                        data.forEach(item => importedSubmissions.push({ ...item, _source: 'imported' }));
+                    } else if (data && data.studentName) {
+                        importedSubmissions.push({ ...data, _source: 'imported' });
+                    }
+                } catch (err) {
+                    console.error('Помилка читання JSON:', err);
+                }
+            }
+            event.target.value = '';
+            renderTeacherDashboard();
+        };
+
+        window.deleteSubmission = async function(id, timestampMs, studentName) {
+            if (!confirm(`Видалити роботу учня "${studentName}"?`)) return;
+            if (id && isCloudMode && db) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', TEST_ID, 'public', 'data', 'test_submissions', id));
+                } catch (e) {
+                    alert('Не вдалося видалити з Firebase (перевірте правила доступу).');
+                }
+            }
+            localSubmissions = localSubmissions.filter(s => !(s.timestampMs === timestampMs && s.studentName === studentName));
+            localStorage.setItem(STORAGE_LOCAL_SUBS_KEY, JSON.stringify(localSubmissions));
+            importedSubmissions = importedSubmissions.filter(s => !(s.timestampMs === timestampMs && s.studentName === studentName));
+            renderTeacherDashboard();
+        };
+
+        window.setFilter = function(mode) {
+            currentFilter = mode;
+            const allBtn = document.getElementById('filterAllBtn');
+            const flagBtn = document.getElementById('filterFlaggedBtn');
+            if (mode === 'all') {
+                allBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-extrabold bg-sky-700 text-white';
+                flagBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-200 text-slate-700 hover:bg-slate-300';
+            } else {
+                flagBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-extrabold bg-red-600 text-white';
+                allBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-200 text-slate-700 hover:bg-slate-300';
+            }
+            renderTeacherDashboard();
+        };
+
+        function getAntiCheatMetrics(sub) {
+            const ac = sub.antiCheat || {};
+            const tabs = ac.tabSwitchCount || 0;
+            const focus = ac.focusLossCount || 0;
+            const fsExits = ac.fullscreenExitCount || 0;
+            const awaySec = ac.totalAwaySeconds || 0;
+            const reloaded = Boolean(ac.wasReloaded);
+            const totalViolations = tabs + focus + fsExits;
+            return { tabs, focus, fsExits, awaySec, reloaded, totalViolations, events: ac.events || [], startedAt: ac.startedAt || '' };
+        }
+
+        window.toggleEventLog = function(idx) {
+            const el = document.getElementById(`ac-log-${idx}`);
+            if (el) el.classList.toggle('hidden');
+        };
+
+        function renderTeacherDashboard() {
+            const all = getMergedSubmissions();
+            const emptyState = document.getElementById('teacherEmptyState');
+            const listEl = document.getElementById('teacherSubmissionsList');
+
+            // Update Stats
+            document.getElementById('statTotalCount').textContent = all.length;
+            if (all.length > 0) {
+                const avg = all.reduce((s, x) => s + (Number(x.finalGrade12) || 0), 0) / all.length;
+                document.getElementById('statAvgGrade').textContent = avg.toFixed(1);
+                const flagged = all.filter(s => getAntiCheatMetrics(s).totalViolations > 0 || getAntiCheatMetrics(s).reloaded).length;
+                document.getElementById('statFlaggedCount').textContent = flagged;
+                document.getElementById('statCleanCount').textContent = all.length - flagged;
+            } else {
+                document.getElementById('statAvgGrade').textContent = '—';
+                document.getElementById('statFlaggedCount').textContent = '0';
+                document.getElementById('statCleanCount').textContent = '0';
+            }
+
+            const filtered = currentFilter === 'flagged'
+                ? all.filter(s => getAntiCheatMetrics(s).totalViolations > 0 || getAntiCheatMetrics(s).reloaded)
+                : all;
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                listEl.innerHTML = '';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            listEl.innerHTML = filtered.map((sub, idx) => {
+                const r = sub.results || {};
+                const ac = getAntiCheatMetrics(sub);
+                const qKeys = ['q1a', 'q1b', 'q1v', 'q1g', 'q1d', 'q1e', 'q2', 'q3', 'q4', 'q5', 'bonus'];
+                const badgesHtml = qKeys.map(k => {
+                    const item = r[k];
+                    if (!item) return '';
+                    const bg = item.status === 'correct' ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                             : (item.status === 'partial' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300');
+                    const shortName = k === 'bonus' ? '🦀m' : k.replace('q', '');
+                    return `<span class="px-2 py-1 rounded-lg border text-xs font-bold ${bg}" title="${escapeHtml(item.label)}: ${escapeHtml(item.note)}">
+                        ${shortName}: <strong>${escapeHtml(item.userStr)}</strong>
+                    </span>`;
+                }).join('');
+
+                const photosHtml = (sub.photos || []).map((photoSrc, pIdx) => `
+                    <div data-src="${escapeHtml(photoSrc)}" data-cap="Зошит: ${escapeHtml(sub.studentName)} (Фото ${pIdx + 1})"
+                         onclick="openLightbox(this.dataset.src, this.dataset.cap)"
+                         class="w-24 h-20 rounded-xl overflow-hidden border-2 border-sky-400 cursor-pointer relative group shadow-sm flex-shrink-0">
+                        <img src="${escapeHtml(photoSrc)}" alt="Зошит" class="w-full h-full object-cover group-hover:scale-105 transition">
+                        <div class="absolute inset-0 bg-sky-950/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-lg transition">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                        </div>
+                    </div>
+                `).join('');
+
+                const hasIssues = ac.totalViolations > 0 || ac.reloaded;
+                const acBanner = hasIssues
+                    ? `<div class="mb-3 p-3 rounded-xl border-2 border-red-300 bg-red-50 text-red-900 text-xs">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="font-extrabold flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <span>🚨 Зафіксовано підозрілу активність:</span>
+                                <span>Перемикань вкладки: <strong>${ac.tabs}</strong></span>
+                                <span>Втрат фокусу: <strong>${ac.focus}</strong></span>
+                                <span>Виходів з повноекрану: <strong>${ac.fsExits}</strong></span>
+                                <span>Поза тестом: <strong>${ac.awaySec} с</strong></span>
+                                ${ac.reloaded ? '<span class="bg-red-200 px-2 py-0.5 rounded">Було перезавантаження F5</span>' : ''}
+                            </div>
+                            ${ac.events.length ? `<button onclick="toggleEventLog(${idx})" class="underline font-extrabold text-red-700 hover:text-red-900">Журнал (${ac.events.length})</button>` : ''}
+                        </div>
+                        <div id="ac-log-${idx}" class="hidden mt-2 pt-2 border-t border-red-200 space-y-1 font-mono text-[11px]">
+                            ${ac.events.map(ev => `<div>• <strong>${escapeHtml(ev.time)}</strong> — ${escapeHtml(ev.detail)}</div>`).join('')}
+                        </div>
+                    </div>`
+                    : `<div class="mb-3 p-2.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs font-extrabold flex items-center justify-between">
+                        <span>✅ Контроль активності: порушень не зафіксовано (повний екран утримувався)</span>
+                        ${ac.startedAt ? `<span class="text-emerald-700 font-semibold">Старт: ${escapeHtml(ac.startedAt)}</span>` : ''}
+                    </div>`;
+
+                return `
+                    <div class="p-5 rounded-2xl border-2 ${hasIssues ? 'border-red-300 bg-red-50/20' : 'border-slate-200 bg-slate-50/70'} hover:border-sky-300 transition shadow-sm">
+                        <div class="flex flex-wrap justify-between items-start gap-3 mb-3">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="bg-sky-900 text-amber-300 text-xs font-black px-2.5 py-1 rounded-lg">#${filtered.length - idx}</span>
+                                    <h3 class="font-black text-lg text-slate-900">${escapeHtml(sub.studentName)}</h3>
+                                    <span class="text-xs font-semibold text-slate-500"><i class="fa-regular fa-clock mr-1"></i>${escapeHtml(sub.submittedAt || '')}</span>
+                                </div>
+                                <p class="text-xs text-slate-600 mt-1">
+                                    Основний бал: <strong>${sub.baseScore} / 12</strong> • Бонус від краба Гоші: <strong>+${sub.bonusScore || 0} б.</strong>
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="bg-emerald-600 text-white px-4 py-1.5 rounded-xl font-black text-lg shadow">
+                                    Оцінка: ${sub.finalGrade12} / 12
+                                </div>
+                                <button data-id="${escapeHtml(sub.id || '')}" data-ts="${sub.timestampMs || 0}" data-name="${escapeHtml(sub.studentName)}"
+                                    onclick="deleteSubmission(this.dataset.id, Number(this.dataset.ts), this.dataset.name)"
+                                    class="text-slate-400 hover:text-red-600 p-2 rounded-lg" title="Видалити запис">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        ${acBanner}
+
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            ${badgesHtml}
+                        </div>
+
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2 text-xs font-extrabold text-sky-900 uppercase">
+                                <i class="fa-solid fa-camera text-sky-600 text-base"></i>
+                                Прикріплені фото зошита (${(sub.photos || []).length} шт.) — натисніть для збільшення:
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                ${photosHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- Lightbox Modal ---
+        window.openLightbox = function(src, caption) {
+            currentLightboxRotation = 0;
+            const img = document.getElementById('lightboxImg');
+            img.src = src;
+            img.style.transform = `rotate(0deg)`;
+            document.getElementById('lightboxCaption').textContent = caption || 'Фото обчислень';
+            const modal = document.getElementById('photoLightbox');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.rotateLightboxImage = function(deg) {
+            currentLightboxRotation = (currentLightboxRotation + deg) % 360;
+            document.getElementById('lightboxImg').style.transform = `rotate(${currentLightboxRotation}deg)`;
+        };
+
+        window.closeLightbox = function() {
+            const modal = document.getElementById('photoLightbox');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        // --- Export CSV ---
+        window.exportTeacherCSV = function() {
+            const all = getMergedSubmissions();
+            if (!all.length) {
+                alert("Поки що немає зданих робіт для експорту.");
+                return;
+            }
+            const headers = [
+                "Учень", "Час здачі", "Оцінка (з 12)", "Основні бали", "Бонус",
+                "Перемикань вкладки", "Втрат фокусу", "Виходів з повноекрану", "Поза тестом (сек)",
+                "1а", "1б", "1в", "1г", "1д", "1е", "Завд.2", "Завд.3", "Завд.4", "Завд.5", "Бонус m"
+            ];
+            const rows = all.map(s => {
+                const r = s.results || {};
+                const ac = getAntiCheatMetrics(s);
+                return [
+                    `"${(s.studentName || '').replace(/"/g, '""')}"`,
+                    s.submittedAt || '',
+                    s.finalGrade12,
+                    s.baseScore,
+                    s.bonusScore,
+                    ac.tabs,
+                    ac.focus,
+                    ac.fsExits,
+                    ac.awaySec,
+                    r.q1a?.userStr || '',
+                    r.q1b?.userStr || '',
+                    r.q1v?.userStr || '',
+                    r.q1g?.userStr || '',
+                    r.q1d?.userStr || '',
+                    r.q1e?.userStr || '',
+                    r.q2?.userStr || '',
+                    r.q3?.userStr || '',
+                    r.q4?.userStr || '',
+                    r.q5?.userStr || '',
+                    r.bonus?.userStr || ''
+                ].join(';');
+            });
+
+            const csvContent = "\uFEFF" + [headers.join(';'), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kontrolna_6klas_droby_results.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+    </script>
+</body>
+</html>

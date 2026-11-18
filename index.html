@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Математика, 6 клас — Контрольна робота з крабом Гошею</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="firebase-config.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #fef3c7 100%);
+            min-height: 100vh;
+            color: #0f172a;
+        }
+        h1, h2, h3, .heading-font {
+            font-family: 'Montserrat', sans-serif;
+        }
+        /* Mathematical Fractions Styling */
+        .math-box {
+            font-family: 'Cambria Math', 'Georgia', serif;
+            font-size: 1.35rem;
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .mixed {
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+        .whole {
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin-right: 3px;
+        }
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            font-size: 1.15rem;
+            margin: 0 4px;
+        }
+        .frac .num {
+            border-bottom: 2px solid #0f172a;
+            padding: 0 5px 2px 5px;
+            display: block;
+            text-align: center;
+            min-width: 22px;
+            font-weight: 700;
+        }
+        .frac .den {
+            padding: 2px 5px 0 5px;
+            display: block;
+            text-align: center;
+            min-width: 22px;
+            font-weight: 700;
+        }
+
+        /* Fraction Input Styling */
+        .frac-input-group {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 6px;
+        }
+        .frac-input-group input {
+            width: 60px;
+            height: 38px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            border: 2px solid #94a3b8;
+            border-radius: 8px;
+            background: #ffffff;
+            transition: all 0.2s;
+        }
+        .frac-input-group input:focus {
+            border-color: #0284c7;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+        }
+        .frac-divider {
+            width: 64px;
+            height: 3px;
+            background-color: #0f172a;
+            margin: 4px 0;
+            border-radius: 2px;
+        }
+        .whole-input {
+            width: 58px;
+            height: 46px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            border: 2px solid #94a3b8;
+            border-radius: 10px;
+            background: #ffffff;
+            transition: all 0.2s;
+        }
+        .whole-input:focus {
+            border-color: #0284c7;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+        }
+
+        /* Crab Gosha Floating Animation */
+        @keyframes floatCrab {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(1.5deg); }
+        }
+        .crab-animate {
+            animation: floatCrab 3.5s ease-in-out infinite;
+        }
+
+        /* Shake animation for strict validation */
+        @keyframes shakeAlert {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .shake-error {
+            animation: shakeAlert 0.45s ease-in-out;
+        }
+
+        /* Blurred test when locked */
+        .test-locked {
+            filter: blur(10px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Disable text selection on problem statements during active test */
+        .no-select-text {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #ffffff !important; }
+            .test-locked { filter: none !important; }
+        }
+    </style>
+</head>
+<body class="pb-16">
+
+    <!-- Top Navigation Bar (Student Only - No Teacher Access) -->
+    <nav class="bg-sky-900 text-white shadow-lg sticky top-0 z-40 no-print border-b-4 border-amber-400">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-amber-400 text-sky-950 font-extrabold px-3 py-1 rounded-full text-sm uppercase tracking-wider shadow">
+                    6 Клас • Математика
+                </span>
+                <span class="font-bold text-sky-100 hidden sm:inline">Морський патруль знань з крабом Гошею</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-extrabold">
+                <span id="fsStatusPill" class="px-3 py-1.5 rounded-full bg-slate-700 text-slate-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-expand"></i>
+                    <span>Очікування старту</span>
+                </span>
+                <span id="cheatStatusPill" class="px-3 py-1.5 rounded-full bg-emerald-600/90 text-white flex items-center gap-1.5">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Порушень: 0</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Custom Toast / Alert Box -->
+    <div id="goshaToast" class="fixed top-20 right-4 left-4 sm:left-auto sm:max-w-md z-50 hidden transition-all duration-300 no-print">
+        <div class="bg-amber-50 border-l-8 border-red-500 rounded-2xl shadow-2xl p-4 flex items-start gap-3 ring-2 ring-red-200">
+            <div class="text-3xl">🦀</div>
+            <div class="flex-1">
+                <h4 id="goshaToastTitle" class="font-extrabold text-red-800 text-sm uppercase">Стоп-клешня від краба Гоші!</h4>
+                <p id="goshaToastMsg" class="text-slate-800 text-sm font-semibold mt-0.5"></p>
+            </div>
+            <button onclick="hideToast()" class="text-slate-400 hover:text-slate-700 text-lg font-bold px-1">&times;</button>
+        </div>
+    </div>
+
+    <!-- ==================== START GATE OVERLAY (FORCED FULLSCREEN ENTRY) ==================== -->
+    <div id="startGateOverlay" class="fixed inset-0 z-50 bg-sky-950/90 backdrop-blur-md flex items-center justify-center p-4 no-print overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border-4 border-amber-400 overflow-hidden my-auto">
+            <div class="bg-gradient-to-r from-sky-700 to-cyan-600 text-white p-6 text-center">
+                <div class="text-5xl mb-2 crab-animate inline-block">🦀</div>
+                <h2 class="text-2xl font-black">Контрольна робота з математики</h2>
+                <p class="text-amber-300 font-bold text-sm mt-1">Тема: «Множення і ділення дробів» • 6 клас</p>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <div>
+                    <label for="gateStudentName" class="block text-xs font-extrabold uppercase tracking-wider text-sky-900 mb-1.5">
+                        <i class="fa-solid fa-user-graduate mr-1"></i> Прізвище та ім'я учня / учениці <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="gateStudentName" placeholder="Наприклад: Коваленко Максим"
+                        class="w-full px-4 py-3 rounded-xl border-2 border-sky-300 font-bold text-slate-900 focus:border-sky-600 focus:outline-none text-base">
+                </div>
+
+                <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 space-y-2.5 text-sm text-amber-950">
+                    <h3 class="font-extrabold text-amber-900 uppercase text-xs tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-amber-600 text-base"></i>
+                        Правила проходження роботи:
+                    </h3>
+                    <ul class="space-y-1.5 font-semibold text-xs sm:text-sm">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-expand text-sky-600 mt-1"></i>
+                            <span>Робота відкривається у <strong>примусовому повноекранному режимі</strong>.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-eye text-red-500 mt-1"></i>
+                            <span><strong>Не перемикайте вкладки</strong>, не згортайте браузер і не виходьте з повного екрана — кожне порушення автоматично записується в журнал з точним часом і передається вчителю.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-camera text-emerald-600 mt-1"></i>
+                            <span>Наприкінці потрібно прикріпити <strong>фото зошита</strong> — під час вибору фото захист робить безпечну паузу (це не вважається порушенням).</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div id="gateResumeNotice" class="hidden bg-red-50 border-2 border-red-300 rounded-xl p-3 text-xs font-bold text-red-800">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                    Зафіксовано перезавантаження сторінки. Попередній журнал активності збережено.
+                </div>
+
+                <button id="startTestBtn" onclick="enterFullscreenAndStart()"
+                    class="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-sky-950 font-black text-lg py-4 px-6 rounded-2xl shadow-xl transition flex items-center justify-center gap-3 border-2 border-amber-300">
+                    <i class="fa-solid fa-expand text-xl"></i>
+                    <span id="startTestBtnLabel">Увімкнути повний екран і почати!</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FULLSCREEN LOCK OVERLAY (IF EXITED MID-TEST) ==================== -->
+    <div id="fullscreenLockOverlay" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border-4 border-red-500 overflow-hidden text-center p-6 space-y-4">
+            <div id="fsLockIcon" class="text-5xl">🚨🦀</div>
+            <h2 id="fsLockTitle" class="text-xl font-black text-red-700">Повноекранний режим перервано!</h2>
+            <p id="fsLockMessage" class="text-slate-700 font-semibold text-sm">
+                Ви вийшли з повноекранного режиму під час контрольної роботи. Цю дію зафіксовано у звіті для вчителя.
+            </p>
+            <button onclick="returnToFullscreen()"
+                class="w-full bg-sky-700 hover:bg-sky-800 text-white font-black py-3.5 px-6 rounded-2xl shadow-lg transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-compress"></i>
+                <span>Повернутися в повноекранний режим</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main id="studentMainContent" class="max-w-4xl mx-auto px-4 mt-6 test-locked">
+
+        <div id="studentView">
+
+            <!-- Header Banner with Crab Gosha -->
+            <header class="bg-white rounded-3xl shadow-xl border-2 border-sky-200 overflow-hidden mb-6 relative">
+                <div class="bg-gradient-to-r from-sky-700 via-sky-600 to-cyan-600 px-6 py-4 text-white flex justify-between items-center">
+                    <div>
+                        <p class="text-amber-300 font-bold text-xs uppercase tracking-widest">Онлайн-контрольна робота</p>
+                        <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold mt-0.5">«МНОЖЕННЯ І ДІЛЕННЯ ДРОБІВ»</h1>
+                    </div>
+                    <div class="text-right hidden sm:block">
+                        <span class="bg-sky-900/60 border border-sky-400/40 px-3 py-1.5 rounded-xl text-xs font-bold block">
+                            Максимум: <strong class="text-amber-300 text-sm">12 балів</strong> (+2 бонус)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-6 flex flex-col md:flex-row items-center gap-6 bg-gradient-to-b from-sky-50/70 to-white">
+                    <!-- Custom Fiddler Crab Gosha SVG -->
+                    <div class="w-40 sm:w-48 flex-shrink-0 crab-animate">
+                        <svg viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto drop-shadow-md">
+                            <!-- Right Walking Legs -->
+                            <g stroke="#1e293b" stroke-width="3.5" stroke-linejoin="round" fill="#f5c69c">
+                                <path d="M215 95 L255 60 L295 85 L308 135 L290 120 L278 95 L245 85 L220 110 Z"/>
+                                <path d="M225 110 L270 85 L302 125 L298 168 L285 142 L280 125 L255 108 L225 122 Z"/>
+                                <path d="M220 125 L265 115 L285 155 L265 190 L262 162 L248 135 L218 138 Z"/>
+                            </g>
+                            <!-- Left Walking Legs -->
+                            <g stroke="#1e293b" stroke-width="3.5" stroke-linejoin="round" fill="#f5c69c">
+                                <path d="M85 135 L55 155 L65 190 L50 185 L40 150 L75 125 Z"/>
+                                <path d="M105 140 L80 165 L95 198 L80 192 L65 162 L95 132 Z"/>
+                            </g>
+                            <!-- Carapace / Body -->
+                            <path d="M115 75 Q175 55 225 80 Q245 110 220 140 Q170 155 120 135 Q95 105 115 75 Z" fill="#64748b" stroke="#1e293b" stroke-width="4"/>
+                            <path d="M125 80 Q175 65 215 85 Q200 110 165 115 Q135 110 125 80 Z" fill="#e2b48b" stroke="#1e293b" stroke-width="3"/>
+                            <!-- Tall Eyestalks -->
+                            <path d="M150 75 L140 22 Q140 12 148 12 Q155 12 155 22 L160 74 Z" fill="#fef3c7" stroke="#1e293b" stroke-width="3.5"/>
+                            <ellipse cx="147" cy="18" rx="6" ry="8" fill="#0f172a"/>
+                            <circle cx="145" cy="15" r="2.2" fill="#ffffff"/>
+                            <path d="M180 74 L188 18 Q190 8 197 10 Q204 12 201 22 L190 75 Z" fill="#fef3c7" stroke="#1e293b" stroke-width="3.5"/>
+                            <ellipse cx="195" cy="16" rx="6" ry="8" fill="#0f172a"/>
+                            <circle cx="193" cy="13" r="2.2" fill="#ffffff"/>
+                            <!-- Small Right Claw -->
+                            <path d="M205 115 L220 138 L215 168 Q205 160 205 145 L198 165 Q190 150 195 132 Z" fill="#f5c69c" stroke="#1e293b" stroke-width="3.5"/>
+                            <!-- GIANT BRIGHT YELLOW CLAW -->
+                            <g>
+                                <path d="M18 115 Q10 80 55 62 Q95 48 125 75 Q148 92 168 102 Q130 112 95 105 Q135 118 165 125 Q130 155 75 155 Q25 150 18 115 Z" fill="#facc15" stroke="#1e293b" stroke-width="4" stroke-linejoin="round"/>
+                                <path d="M82 102 Q125 102 162 102 Q132 118 85 112 Z" fill="#78350f"/>
+                                <circle cx="45" cy="85" r="4" fill="#1e293b"/>
+                                <circle cx="62" cy="75" r="3.5" fill="#1e293b"/>
+                                <circle cx="35" cy="105" r="4.5" fill="#1e293b"/>
+                                <circle cx="58" cy="96" r="3" fill="#1e293b"/>
+                                <circle cx="75" cy="82" r="4" fill="#1e293b"/>
+                                <circle cx="48" cy="122" r="3.5" fill="#1e293b"/>
+                                <circle cx="68" cy="132" r="4" fill="#1e293b"/>
+                                <circle cx="92" cy="138" r="3" fill="#1e293b"/>
+                                <circle cx="112" cy="135" r="3.5" fill="#1e293b"/>
+                                <circle cx="95" cy="78" r="3.5" fill="#1e293b"/>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <!-- Speech Bubble & Student Name Input -->
+                    <div class="flex-1 w-full">
+                        <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 relative shadow-sm mb-4">
+                            <p class="text-amber-950 font-bold text-sm sm:text-base leading-snug">
+                                <i class="fa-solid fa-comment-dots text-amber-500 mr-1"></i>
+                                «Привіт! Я <strong>Краб Гоша</strong> 🦀. Бажаю влучних скорочень і легких обчислень! Усі приклади розв'язуй у зошиті, вписуй відповіді сюди, не перемикай вкладки, а в кінці <strong>обов'язково прикріпи фото свого зошита</strong>!»
+                            </p>
+                        </div>
+
+                        <!-- Student Name Field -->
+                        <div id="nameInputCard" class="bg-white p-4 rounded-2xl border-2 border-sky-300 shadow-sm">
+                            <label for="studentName" class="block text-xs font-extrabold uppercase tracking-wider text-sky-800 mb-1">
+                                <i class="fa-solid fa-user-graduate mr-1"></i> Прізвище та ім'я учня / учениці <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <input type="text" id="studentName" placeholder="Наприклад: Коваленко Максим"
+                                    class="flex-1 px-4 py-2.5 rounded-xl border-2 border-slate-300 font-bold text-slate-900 focus:border-sky-600 focus:outline-none text-base">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ==================== TASKS LIST ==================== -->
+            <div class="space-y-6 no-select-text" id="tasksContainer">
+
+                <!-- ЗАВДАННЯ 1 -->
+                <section class="bg-white rounded-3xl shadow-md border-2 border-slate-200 overflow-hidden">
+                    <div class="bg-sky-100/80 border-b border-sky-200 px-6 py-3.5 flex justify-between items-center">
+                        <h2 class="font-extrabold text-sky-950 text-lg flex items-center gap-2">
+                            <span class="bg-amber-400 text-sky-950 w-8 h-8 rounded-xl inline-flex items-center justify-center font-black shadow-sm">1</span>
+                            Обчисліть (скоротіть дроби, де це можливо):
+                        </h2>
+                        <span class="bg-sky-700 text-white text-xs font-bold px-3 py-1 rounded-full">3 бали (по 0,5 б.)</span>
+                    </div>
+
+                    <div class="p-6">
+                        <p class="text-xs font-semibold text-slate-500 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                            <i class="fa-solid fa-circle-info text-sky-600 mr-1"></i>
+                            <strong>Підказка:</strong> Записуйте нескоротні дроби у відповідні віконця чисельника і знаменника. У прикладі <strong>в)</strong> можна записати мішане число (цілу і дробову частину) або десятковий дріб.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                            <!-- 1 а -->
+                            <div id="card-1a" class="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/60 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-extrabold text-amber-700 text-lg">а)</span>
+                                    <div class="math-box">
+                                        <span class="frac"><span class="num">8</span><span class="den">15</span></span>
+                                        <span class="mx-1.5 font-bold">×</span>
+                                        <span class="frac"><span class="num">5</span><span class="den">12</span></span>
+                                        <span class="mx-2 font-bold">=</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="frac-input-group">
+                                        <input type="number" id="q1a_num" placeholder="чис." aria-label="Чисельник 1а">
+                                        <div class="frac-divider"></div>
+                                        <input type="number" id="q1a_den" placeholder="знам." aria-label="Знаменник 1а">
+                                    </div>
+                                    <span id="badge-1a" class="hidden text-xl"></span>
+                                </div>
+                            </div>
+
+                            <!-- 1 г -->
+                            <div id="card-1g" class="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/60 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-extrabold text-amber-700 text-lg">г)</span>
+                                    <div class="math-box">
+                                        <span class="frac"><span class="num">14</span><span class="den">27</span></span>
+                                        <span class="mx-1.5 font-bold">:</span>
+                                        <span class="frac"><span class="num">7</span><span class="den">9</span></span>
+                                        <span class="mx-2 font-bold">=</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="frac-input-group">
+                                        <input type="number" id="q1g_num" placeholder="чис." aria-label="Чисельник 1г">
+                                        <div class="frac-divider"></div>
+                                        <input type="number" id="q1g_den" placeholder="знам." aria-label="Знаменник 1г">
+                                    </div>
+                                    <span id="badge-1g" class="hidden text-xl"></span>
+                                </div>
+                            </div>
+
+                            <!-- 1 б -->
+                            <div id="card-1b" class="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/60 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-extrabold text-amber-700 text-lg">б)</span>
+                                    <div class="math-box">
+                                        <span class="frac"><span class="num">5</span><span class="den">9</span></span>
+                                        <span class="mx-1.5 font-bold">×</span>
+                                        <span class="whole">18</span>
+                                        <span class="mx-2 font-bold">=</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="q1b_val" placeholder="?" class="whole-input" aria-label="Відповідь 1б">
+                                    <span id="badge-1b" class="hidden text-xl"></span>
+                                </div>
+                            </div>
+
+                            <!-- 1 д -->
+                            <div id="card-1d" class="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/60 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-extrabold text-amber-700 text-lg">д)</span>
+                                    <div class="math-box">
+                                        <span class="mixed"><span class="whole">5</span><span class="frac"><span class="num">1</span><span class="den">4</span></span></span>
+                                        <span class="mx-1.5 font-bold">:</span>
+                                        <span class="mixed"><span class="whole">1</span><span class="frac"><span class="num">3</span><span class="den">4</span></span></span>
+                                        <span class="mx-2 font-bold">=</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="q1d_val" placeholder="?" class="whole-input" aria-label="Відповідь 1д">
+                                    <span id="badge-1d" class="hidden text-xl"></span>
+                                </div>
+                            </div>
+
+                            <!-- 1 в -->
+                            <div id="card-1v" class="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/60 flex flex-wrap items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-extrabold text-amber-700 text-lg">в)</span>
+                                    <div class="math-box">
+                                        <span class="mixed"><span class="whole">3</span><span class="frac"><span class="num">3</span><span class="den">7</span></span></span>
+                                        <span class="mx-1.5 font-bold">×</span>
+                                        <span class="mixed"><span class="whole">1</span><span class="frac"><span class="num">5</span><span class="den">16</span></span></span>
+                                        <span class="mx-2 font-bold">=</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <input type="text" id="q1v_whole" placeholder="ціла" class="whole-input" title="Ціла частина (або десятковий дріб)">
+                                    <div class="frac-input-group">
+                                        <input type="number" id="q1v_num" placeholder="чис." title="Чисельник (необов'язково, якщо вписано десятковий дріб)">
+                                        <div class="frac-divider"></div>
+                                        <input type="number" id="q1v_den" placeholder="знам." title="Знаменник">
+                                    </div>
+                                    <span id="badge-1v" class="hidden text-xl"></span>
+                                </div>
+                            </div>
+
+                            <!-- 1 е -->
+                            <div id="card-1e" class="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/60 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-extrabold text-amber-700 text-lg">е)</span>
+                                    <div class="math-box">
+                                        <span class="frac"><span class="num">18</span><span class="den">23</span></span>
+                                        <span class="mx-1.5 font-bold">:</span>
+                                        <span class="whole">6</span>
+                                        <span class="mx-2 font-bold">=</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="frac-input-group">
+                                        <input type="number" id="q1e_num" placeholder="чис." aria-label="Чисельник 1е">
+                                        <div class="frac-divider"></div>
+                                        <input type="number" id="q1e_den" placeholder="знам." aria-label="Знаменник 1е">
+                                    </div>
+                                    <span id="badge-1e" class="hidden text-xl"></span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ЗАВДАННЯ 2 -->
+                <section id="card-2" class="bg-white rounded-3xl shadow-md border-2 border-slate-200 overflow-hidden">
+                    <div class="bg-sky-100/80 border-b border-sky-200 px-6 py-3 flex justify-between items-center">
+                        <h2 class="font-extrabold text-sky-950 text-lg flex items-center gap-2">
+                            <span class="bg-amber-400 text-sky-950 w-8 h-8 rounded-xl inline-flex items-center justify-center font-black shadow-sm">2</span>
+                            Задача на знаходження дробу від числа
+                        </h2>
+                        <span class="bg-sky-700 text-white text-xs font-bold px-3 py-1 rounded-full">2 бали</span>
+                    </div>
+                    <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <p class="text-slate-800 text-lg font-semibold leading-relaxed">
+                            У класі <strong>28 учнів</strong>, з них
+                            <span class="math-box"><span class="frac"><span class="num">4</span><span class="den">7</span></span></span>
+                            становлять дівчатка. Скільки дівчаток навчається у класі?
+                        </p>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-sm font-bold text-slate-600">Відповідь:</span>
+                            <input type="number" id="q2_val" placeholder="?" class="whole-input !w-24">
+                            <span class="text-sm font-bold text-slate-600">дівч.</span>
+                            <span id="badge-2" class="hidden text-xl"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ЗАВДАННЯ 3 -->
+                <section id="card-3" class="bg-white rounded-3xl shadow-md border-2 border-slate-200 overflow-hidden">
+                    <div class="bg-sky-100/80 border-b border-sky-200 px-6 py-3 flex justify-between items-center">
+                        <h2 class="font-extrabold text-sky-950 text-lg flex items-center gap-2">
+                            <span class="bg-amber-400 text-sky-950 w-8 h-8 rounded-xl inline-flex items-center justify-center font-black shadow-sm">3</span>
+                            Задача на знаходження числа за його дробом
+                        </h2>
+                        <span class="bg-sky-700 text-white text-xs font-bold px-3 py-1 rounded-full">2 бали</span>
+                    </div>
+                    <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <p class="text-slate-800 text-lg font-semibold leading-relaxed">
+                            Турист пройшов <strong>24 км</strong>, що становило
+                            <span class="math-box"><span class="frac"><span class="num">6</span><span class="den">11</span></span></span>
+                            усього маршруту. Яка довжина всього маршруту?
+                        </p>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-sm font-bold text-slate-600">Відповідь:</span>
+                            <input type="number" id="q3_val" placeholder="?" class="whole-input !w-24">
+                            <span class="text-sm font-bold text-slate-600">км</span>
+                            <span id="badge-3" class="hidden text-xl"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ЗАВДАННЯ 4 -->
+                <section id="card-4" class="bg-white rounded-3xl shadow-md border-2 border-slate-200 overflow-hidden">
+                    <div class="bg-sky-100/80 border-b border-sky-200 px-6 py-3 flex justify-between items-center">
+                        <h2 class="font-extrabold text-sky-950 text-lg flex items-center gap-2">
+                            <span class="bg-amber-400 text-sky-950 w-8 h-8 rounded-xl inline-flex items-center justify-center font-black shadow-sm">4</span>
+                            Виконайте дії (приклад на всі дії з дробами):
+                        </h2>
+                        <span class="bg-sky-700 text-white text-xs font-bold px-3 py-1 rounded-full">2 бали</span>
+                    </div>
+                    <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="math-box text-xl">
+                            <span class="font-bold text-2xl mr-1">(</span>
+                            <span class="mixed"><span class="whole">4</span><span class="frac"><span class="num">5</span><span class="den">12</span></span></span>
+                            <span class="mx-2 font-bold">−</span>
+                            <span class="mixed"><span class="whole">2</span><span class="frac"><span class="num">7</span><span class="den">8</span></span></span>
+                            <span class="font-bold text-2xl ml-1">)</span>
+                            <span class="mx-2 font-bold">:</span>
+                            <span class="mixed"><span class="whole">1</span><span class="frac"><span class="num">13</span><span class="den">24</span></span></span>
+                            <span class="mx-2 font-bold">=</span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-sm font-bold text-slate-600">Відповідь:</span>
+                            <input type="text" id="q4_val" placeholder="?" class="whole-input !w-24">
+                            <span id="badge-4" class="hidden text-xl"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ЗАВДАННЯ 5 -->
+                <section id="card-5" class="bg-white rounded-3xl shadow-md border-2 border-slate-200 overflow-hidden">
+                    <div class="bg-sky-100/80 border-b border-sky-200 px-6 py-3 flex justify-between items-center">
+                        <h2 class="font-extrabold text-sky-950 text-lg flex items-center gap-2">
+                            <span class="bg-amber-400 text-sky-950 w-8 h-8 rounded-xl inline-flex items-center justify-center font-black shadow-sm">5</span>
+                            Текстова задача з дробами та відсотками
+                        </h2>
+                        <span class="bg-sky-700 text-white text-xs font-bold px-3 py-1 rounded-full">3 бали</span>
+                    </div>
+                    <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <p class="text-slate-800 text-lg font-semibold leading-relaxed">
+                            На складі було <strong>300 кг</strong> фруктів. За перший день продали
+                            <span class="math-box"><span class="frac"><span class="num">2</span><span class="den">5</span></span></span>
+                            усіх фруктів, за другий — <strong>30%</strong> усієї кількості, а за третій день — решту. Скільки кілограмів фруктів продали за третій день?
+                        </p>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-sm font-bold text-slate-600">Відповідь:</span>
+                            <input type="number" id="q5_val" placeholder="?" class="whole-input !w-24">
+                            <span class="text-sm font-bold text-slate-600">кг</span>
+                            <span id="badge-5" class="hidden text-xl"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ДОДАТКОВЕ ЗАВДАННЯ ВІД КРАБА ГОШІ -->
+                <section id="card-bonus" class="bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-100/70 rounded-3xl shadow-md border-2 border-dashed border-amber-500 overflow-hidden">
+                    <div class="bg-amber-400/90 px-6 py-3 flex justify-between items-center">
+                        <h2 class="font-extrabold text-sky-950 text-lg flex items-center gap-2">
+                            <span class="text-2xl">🦀</span>
+                            Супер-клешня від краба Гоші (додаткове завдання)
+                        </h2>
+                        <span class="bg-sky-950 text-amber-300 text-xs font-extrabold px-3 py-1 rounded-full">+2 бонусні бали</span>
+                    </div>
+                    <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <p class="text-slate-900 text-lg font-bold leading-relaxed">
+                            <strong>30%</strong> від <strong>50%</strong> від числа <em>m</em> дорівнює <strong>7,5</strong>. Знайдіть число <em>m</em>.
+                        </p>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="text-base font-extrabold text-amber-900">m =</span>
+                            <input type="text" id="qBonus_val" placeholder="?" class="whole-input !w-24 !border-amber-500">
+                            <span id="badge-bonus" class="hidden text-xl"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== MANDATORY PHOTO UPLOAD SECTION ==================== -->
+                <section id="photoUploadSection" class="bg-white rounded-3xl shadow-xl border-4 border-sky-500 overflow-hidden relative">
+                    <div class="bg-sky-600 text-white px-6 py-4 flex flex-wrap justify-between items-center gap-2">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-camera-retro text-2xl text-amber-300"></i>
+                            <div>
+                                <h2 class="font-extrabold text-lg leading-tight">Обов'язкове фото обчислень у зошиті</h2>
+                                <p class="text-xs text-sky-100">Без прикріпленого фото чорнетки або зошита кнопка здачі роботи не спрацює!</p>
+                            </div>
+                        </div>
+                        <span id="photoStatusBadge" class="bg-red-500 text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow">
+                            Фото ще не додано (0)
+                        </span>
+                    </div>
+
+                    <div class="p-6">
+                        <label id="notebookPhotoLabel" for="notebookPhotoInput" onclick="beginSafeFilePick()"
+                            class="cursor-pointer block border-3 border-dashed border-sky-400 hover:border-amber-500 bg-sky-50/70 hover:bg-amber-50/50 transition rounded-2xl p-6 text-center group">
+                            <div class="w-16 h-16 rounded-2xl bg-sky-100 group-hover:bg-amber-200 text-sky-700 group-hover:text-amber-900 mx-auto flex items-center justify-center text-3xl mb-3 transition shadow-sm">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <p class="font-extrabold text-sky-950 text-base sm:text-lg">
+                                Натисни сюди, щоб сфотографувати зошит або вибрати фото
+                            </p>
+                            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                                Можна прикріпити від 1 до 4 фотографій своїх стовпчиків та скорочень дробів (JPG, PNG)
+                            </p>
+                            <input type="file" id="notebookPhotoInput" accept="image/*" multiple class="hidden" onchange="handlePhotoUpload(event)">
+                        </label>
+
+                        <div id="photoPreviewContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 hidden"></div>
+                    </div>
+                </section>
+
+                <!-- SUBMIT BUTTON -->
+                <div class="text-center pt-2 no-print">
+                    <button id="submitTestBtn" onclick="submitAndGradeTest()"
+                        class="w-full sm:w-auto min-w-[320px] bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-sky-950 font-black text-xl px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5 transition flex items-center justify-center gap-3 mx-auto border-2 border-amber-300">
+                        <i class="fa-solid fa-check-double text-2xl"></i>
+                        <span>Здати роботу та перевірити!</span>
+                    </button>
+                </div>
+
+                <!-- ==================== INSTANT RESULT CARD (After Submit) ==================== -->
+                <section id="studentResultCard" class="hidden bg-white rounded-3xl shadow-2xl border-4 border-emerald-500 overflow-hidden mt-8">
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-6 flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="text-5xl">🦀🏆</div>
+                            <div>
+                                <p class="text-emerald-100 text-xs font-extrabold uppercase tracking-widest">Роботу перевірено та збережено!</p>
+                                <h3 id="resultStudentName" class="text-2xl font-black mt-0.5">Учень</h3>
+                                <p id="resultTimestamp" class="text-xs text-emerald-100 mt-0.5"></p>
+                            </div>
+                        </div>
+                        <div class="bg-white text-emerald-950 px-6 py-3 rounded-2xl text-center shadow-lg border-2 border-amber-300">
+                            <span class="text-xs font-bold uppercase text-slate-500 block">Твій результат</span>
+                            <span id="resultTotalScore" class="text-3xl font-black text-emerald-700">12 / 12</span>
+                            <span id="resultBonusText" class="block text-xs font-extrabold text-amber-600 mt-0.5"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-6 space-y-4">
+                        <div id="resultFeedbackBanner" class="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 font-bold text-sm"></div>
+
+                        <div id="resultAntiCheatSummary" class="p-3.5 rounded-2xl border text-xs sm:text-sm font-bold flex flex-wrap items-center justify-between gap-2"></div>
+
+                        <h4 class="font-extrabold text-slate-800 text-sm uppercase tracking-wider">Детальний розбір відповідей:</h4>
+                        <div id="resultBreakdownGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm"></div>
+
+                        <div class="pt-4 border-t border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
+                            <p id="cloudSaveNote" class="text-xs font-semibold text-slate-600 flex-1"></p>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="downloadSubmissionJson()" class="bg-amber-500 hover:bg-amber-600 text-sky-950 font-extrabold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow">
+                                    <i class="fa-solid fa-file-arrow-down"></i> Завантажити файл роботи (.json)
+                                </button>
+                                <button onclick="window.print()" class="bg-sky-700 hover:bg-sky-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow">
+                                    <i class="fa-solid fa-print"></i> Зберегти PDF / Друк звіту
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== PHOTO LIGHTBOX MODAL ==================== -->
+    <div id="photoLightbox" class="fixed inset-0 bg-slate-950/90 z-50 hidden flex-col justify-between p-4 no-print">
+        <div class="flex justify-between items-center text-white max-w-5xl mx-auto w-full py-2">
+            <h4 id="lightboxCaption" class="font-bold text-base sm:text-lg text-amber-300">Фото зошита</h4>
+            <div class="flex items-center gap-2">
+                <button onclick="rotateLightboxImage(-90)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-xl text-sm font-bold" title="Повернути вліво">
+                    <i class="fa-solid fa-rotate-left"></i> Повернути
+                </button>
+                <button onclick="rotateLightboxImage(90)" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-xl text-sm font-bold" title="Повернути вправо">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+                <button onclick="closeLightbox()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-extrabold ml-2">
+                    <i class="fa-solid fa-xmark mr-1"></i> Закрити
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 flex items-center justify-center overflow-auto my-2">
+            <img id="lightboxImg" src="" alt="Фото обчислень" class="max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl transition-transform duration-200">
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT & ANTI-CHEAT + CLOUD SYNC ==================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const cfg = window.GOSHA_CONFIG || {};
+        const TEST_ID = cfg.TEST_ID || 'gosha-math6-droby-v1';
+        const STORAGE_ANTICHEAT_KEY = `gosha_anticheat_${TEST_ID}`;
+        const STORAGE_LOCAL_SUBS_KEY = `gosha_local_submissions_${TEST_ID}`;
+
+        // --- Salted Hash Answer Key (no plaintext answers in source) ---
+        const HASH_SALT = 'gosha6_2026_';
+        const ANSWER_HASHES = {
+            q1a: '53547a10',
+            q1b: '7356d3d0',
+            q1v_mixed: 'e48a4cfe',
+            q1v_imp: '0bbde024',
+            q1v_dec: '0cbd1745',
+            q1g: 'acf938a8',
+            q1d: '6bba5e4c',
+            q1e: '79b0118b',
+            q2: '42d37531',
+            q3: '9def8f4b',
+            q4: '31b326fb',
+            q5: '5a8ed194',
+            bonus: '90efca9d'
+        };
+
+        function fnv1a32(str) {
+            let h = 0x811c9dc5;
+            for (let i = 0; i < str.length; i++) {
+                h ^= str.charCodeAt(i);
+                h = Math.imul(h, 0x01000193);
+            }
+            return (h >>> 0).toString(16).padStart(8, '0');
+        }
+
+        function matchesHash(key, valStr) {
+            return fnv1a32(HASH_SALT + key + ':' + valStr) === ANSWER_HASHES[key];
+        }
+
+        function gcd(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            while (b !== 0) {
+                const t = b;
+                b = a % b;
+                a = t;
+            }
+            return a || 1;
+        }
+
+        // --- App State ---
+        let attachedPhotos = [];
+        let currentLightboxRotation = 0;
+        let lastSubmissionRecord = null;
+        let db = null;
+        let auth = null;
+        let cloudReady = false;
+
+        let testStarted = false;
+        let testSubmitted = false;
+        let isPickingFile = false;
+        let filePickResetTimer = null;
+        let awayStartMs = null;
+        let blurStartMs = null;
+        let blurCheckTimer = null;
+
+        // Restore persisted anti-cheat state so F5 reload cannot erase violations
+        let antiCheat = loadAntiCheatState();
+
+        function loadAntiCheatState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_ANTICHEAT_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object') {
+                        return {
+                            studentName: parsed.studentName || '',
+                            startedAt: parsed.startedAt || null,
+                            wasReloaded: Boolean(parsed.startedAt && !parsed.submitted),
+                            submitted: Boolean(parsed.submitted),
+                            tabSwitchCount: parsed.tabSwitchCount || 0,
+                            focusLossCount: parsed.focusLossCount || 0,
+                            fullscreenExitCount: parsed.fullscreenExitCount || 0,
+                            totalAwaySeconds: parsed.totalAwaySeconds || 0,
+                            fullscreenSupported: parsed.fullscreenSupported !== false,
+                            events: Array.isArray(parsed.events) ? parsed.events : []
+                        };
+                    }
+                }
+            } catch (e) { /* ignore */ }
+            return {
+                studentName: '',
+                startedAt: null,
+                wasReloaded: false,
+                submitted: false,
+                tabSwitchCount: 0,
+                focusLossCount: 0,
+                fullscreenExitCount: 0,
+                totalAwaySeconds: 0,
+                fullscreenSupported: true,
+                events: []
+            };
+        }
+
+        function saveAntiCheatState() {
+            try {
+                localStorage.setItem(STORAGE_ANTICHEAT_KEY, JSON.stringify(antiCheat));
+            } catch (e) { /* ignore quota */ }
+        }
+
+        function nowTimeStr() {
+            return new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        function totalViolationsCount() {
+            return (antiCheat.tabSwitchCount || 0) + (antiCheat.focusLossCount || 0) + (antiCheat.fullscreenExitCount || 0);
+        }
+
+        function updateStatusPills() {
+            const fsPill = document.getElementById('fsStatusPill');
+            const cheatPill = document.getElementById('cheatStatusPill');
+            const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+
+            if (!testStarted) {
+                fsPill.className = 'px-3 py-1.5 rounded-full bg-slate-700 text-slate-200 flex items-center gap-1.5';
+                fsPill.innerHTML = '<i class="fa-solid fa-expand"></i><span>Очікування старту</span>';
+            } else if (testSubmitted) {
+                fsPill.className = 'px-3 py-1.5 rounded-full bg-emerald-600 text-white flex items-center gap-1.5';
+                fsPill.innerHTML = '<i class="fa-solid fa-check"></i><span>Роботу здано</span>';
+            } else if (!antiCheat.fullscreenSupported) {
+                fsPill.className = 'px-3 py-1.5 rounded-full bg-sky-700 text-sky-100 flex items-center gap-1.5';
+                fsPill.innerHTML = '<i class="fa-solid fa-mobile-screen"></i><span>Контроль вкладок активний</span>';
+            } else if (isFs) {
+                fsPill.className = 'px-3 py-1.5 rounded-full bg-emerald-600 text-white flex items-center gap-1.5';
+                fsPill.innerHTML = '<i class="fa-solid fa-expand"></i><span>Повний екран активний</span>';
+            } else {
+                fsPill.className = 'px-3 py-1.5 rounded-full bg-red-600 text-white flex items-center gap-1.5 animate-pulse';
+                fsPill.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>Повний екран вимкнено</span>';
+            }
+
+            const totalV = totalViolationsCount();
+            if (totalV === 0) {
+                cheatPill.className = 'px-3 py-1.5 rounded-full bg-emerald-600/90 text-white flex items-center gap-1.5';
+                cheatPill.innerHTML = '<i class="fa-solid fa-shield-halved"></i><span>Порушень: 0</span>';
+            } else {
+                cheatPill.className = 'px-3 py-1.5 rounded-full bg-red-600 text-white flex items-center gap-1.5';
+                cheatPill.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><span>Порушень: ${totalV}</span>`;
+            }
+        }
+
+        function recordAntiCheatEvent(type, detail) {
+            const eventItem = {
+                type,
+                time: nowTimeStr(),
+                detail
+            };
+            antiCheat.events.push(eventItem);
+            if (antiCheat.events.length > 60) {
+                antiCheat.events = antiCheat.events.slice(-60);
+            }
+            saveAntiCheatState();
+            updateStatusPills();
+        }
+
+        // Pre-fill gate if reloaded mid-test
+        (function initGateFromStorage() {
+            const gateInput = document.getElementById('gateStudentName');
+            const resumeNotice = document.getElementById('gateResumeNotice');
+            const btnLabel = document.getElementById('startTestBtnLabel');
+            if (antiCheat.studentName) {
+                gateInput.value = antiCheat.studentName;
+                document.getElementById('studentName').value = antiCheat.studentName;
+            }
+            if (antiCheat.wasReloaded) {
+                resumeNotice.classList.remove('hidden');
+                btnLabel.textContent = 'Повернутися в повний екран і продовжити';
+                antiCheat.events.push({
+                    type: 'page_reload',
+                    time: nowTimeStr(),
+                    detail: 'Сторінку було перезавантажено під час роботи'
+                });
+                saveAntiCheatState();
+            }
+            updateStatusPills();
+        })();
+
+        // --- Fullscreen Helpers ---
+        async function requestBrowserFullscreen() {
+            const el = document.documentElement;
+            try {
+                if (el.requestFullscreen) {
+                    await el.requestFullscreen();
+                    return true;
+                } else if (el.webkitRequestFullscreen) {
+                    await el.webkitRequestFullscreen();
+                    return true;
+                } else if (el.msRequestFullscreen) {
+                    await el.msRequestFullscreen();
+                    return true;
+                }
+            } catch (err) {
+                console.warn('Fullscreen request declined/unsupported:', err);
+            }
+            return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+        }
+
+        window.enterFullscreenAndStart = async function() {
+            const gateNameInput = document.getElementById('gateStudentName');
+            const name = gateNameInput.value.trim();
+            if (!name) {
+                gateNameInput.classList.add('border-red-500', 'shake-error');
+                setTimeout(() => gateNameInput.classList.remove('shake-error'), 500);
+                gateNameInput.focus();
+                showToast("Вкажи своє ім'я!", "Спочатку впиши своє прізвище та ім'я, а потім натискай кнопку старту.");
+                return;
+            }
+
+            document.getElementById('studentName').value = name;
+            antiCheat.studentName = name;
+            if (!antiCheat.startedAt) {
+                antiCheat.startedAt = nowTimeStr();
+            }
+            antiCheat.submitted = false;
+
+            const fsEntered = await requestBrowserFullscreen();
+            antiCheat.fullscreenSupported = fsEntered;
+            if (!fsEntered) {
+                recordAntiCheatEvent('fs_unsupported', 'Пристрій/браузер не підтримує примусовий повний екран (контроль вкладок активний)');
+            }
+
+            testStarted = true;
+            saveAntiCheatState();
+
+            document.getElementById('startGateOverlay').classList.add('hidden');
+            document.getElementById('studentMainContent').classList.remove('test-locked');
+            updateStatusPills();
+        };
+
+        window.returnToFullscreen = async function() {
+            const ok = await requestBrowserFullscreen();
+            if (ok) {
+                hideFullscreenLock();
+            } else {
+                showToast("Не вдалося увімкнути повний екран", "Натисни клавішу F11 або дозволь повноекранний режим у браузері.");
+            }
+            updateStatusPills();
+        };
+
+        function showFullscreenLock(isAfterPhoto = false) {
+            const lock = document.getElementById('fullscreenLockOverlay');
+            const main = document.getElementById('studentMainContent');
+            const icon = document.getElementById('fsLockIcon');
+            const title = document.getElementById('fsLockTitle');
+            const msg = document.getElementById('fsLockMessage');
+
+            if (isAfterPhoto) {
+                icon.textContent = '📸🦀';
+                title.textContent = 'Фото додано! Поверніться на весь екран';
+                title.className = 'text-xl font-black text-sky-800';
+                msg.textContent = 'Після вибору фото з пристрою повний екран згорнувся. Натисніть кнопку нижче, щоб продовжити роботу без штрафів.';
+            } else {
+                icon.textContent = '🚨🦀';
+                title.textContent = 'Повноекранний режим перервано!';
+                title.className = 'text-xl font-black text-red-700';
+                msg.textContent = 'Ви вийшли з повноекранного режиму під час контрольної роботи. Цю дію зафіксовано у звіті для вчителя.';
+            }
+
+            main.classList.add('test-locked');
+            lock.classList.remove('hidden');
+            lock.classList.add('flex');
+        }
+
+        function hideFullscreenLock() {
+            const lock = document.getElementById('fullscreenLockOverlay');
+            const main = document.getElementById('studentMainContent');
+            lock.classList.add('hidden');
+            lock.classList.remove('flex');
+            main.classList.remove('test-locked');
+        }
+
+        // --- Safe Grace Window for Notebook Photo Picker / Mobile Camera ---
+        window.beginSafeFilePick = function() {
+            isPickingFile = true;
+            if (filePickResetTimer) clearTimeout(filePickResetTimer);
+            // Failsafe auto-reset in 60 seconds if user cancels abnormally
+            filePickResetTimer = setTimeout(() => {
+                isPickingFile = false;
+            }, 60000);
+        };
+
+        function endSafeFilePickSoon() {
+            if (!isPickingFile) return;
+            if (filePickResetTimer) clearTimeout(filePickResetTimer);
+            filePickResetTimer = setTimeout(() => {
+                isPickingFile = false;
+                if (testStarted && !testSubmitted && antiCheat.fullscreenSupported) {
+                    const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+                    if (!isFs) {
+                        showFullscreenLock(true);
+                    }
+                }
+            }, 1200);
+        }
+
+        // --- Anti-Cheat Listeners ---
+        function onFullscreenChanged() {
+            updateStatusPills();
+            if (!testStarted || testSubmitted || !antiCheat.fullscreenSupported) return;
+            const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+            if (!isFs) {
+                if (isPickingFile) {
+                    showFullscreenLock(true);
+                } else {
+                    antiCheat.fullscreenExitCount += 1;
+                    recordAntiCheatEvent('fullscreen_exit', 'Вихід із повноекранного режиму');
+                    showFullscreenLock(false);
+                }
+            } else {
+                hideFullscreenLock();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', onFullscreenChanged);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChanged);
+
+        document.addEventListener('visibilitychange', () => {
+            if (!testStarted || testSubmitted) return;
+            if (isPickingFile) {
+                if (!document.hidden) endSafeFilePickSoon();
+                return;
+            }
+
+            if (document.hidden) {
+                awayStartMs = Date.now();
+                blurStartMs = null; // avoid double counting blur + visibilitychange
+                if (blurCheckTimer) clearTimeout(blurCheckTimer);
+                antiCheat.tabSwitchCount += 1;
+                recordAntiCheatEvent('tab_switch', 'Перемикання вкладки або згортання браузера');
+            } else if (awayStartMs !== null) {
+                const awaySec = Math.max(1, Math.round((Date.now() - awayStartMs) / 1000));
+                awayStartMs = null;
+                antiCheat.totalAwaySeconds += awaySec;
+                const lastEvt = antiCheat.events[antiCheat.events.length - 1];
+                if (lastEvt && lastEvt.type === 'tab_switch') {
+                    lastEvt.detail = `Перемикання вкладки (відсутній ${awaySec} с)`;
+                }
+                saveAntiCheatState();
+                updateStatusPills();
+                showToast(
+                    `Увага! Перемикання вкладки (#${antiCheat.tabSwitchCount})`,
+                    `Зафіксовано вихід зі сторінки на ${awaySec} с. Всі перемикання передаються вчителю!`
+                );
+            }
+        });
+
+        window.addEventListener('blur', () => {
+            if (!testStarted || testSubmitted || isPickingFile) return;
+            if (blurCheckTimer) clearTimeout(blurCheckTimer);
+            blurCheckTimer = setTimeout(() => {
+                // Only count as separate focus loss if tab did NOT become hidden (e.g. split-screen / second window)
+                if (!document.hidden && !isPickingFile && testStarted && !testSubmitted) {
+                    blurStartMs = Date.now();
+                    antiCheat.focusLossCount += 1;
+                    recordAntiCheatEvent('focus_loss', 'Перехід в інше вікно / програму');
+                    showToast(
+                        `Увага! Втрата фокусу (#${antiCheat.focusLossCount})`,
+                        'Не відкривайте сторонні вікна чи калькулятор! Це зафіксовано у звіті.'
+                    );
+                }
+            }, 250);
+        });
+
+        window.addEventListener('focus', () => {
+            if (isPickingFile) {
+                endSafeFilePickSoon();
+                return;
+            }
+            if (blurStartMs !== null) {
+                const awaySec = Math.max(1, Math.round((Date.now() - blurStartMs) / 1000));
+                blurStartMs = null;
+                antiCheat.totalAwaySeconds += awaySec;
+                const lastEvt = antiCheat.events[antiCheat.events.length - 1];
+                if (lastEvt && lastEvt.type === 'focus_loss') {
+                    lastEvt.detail = `Перехід в інше вікно (${awaySec} с)`;
+                }
+                saveAntiCheatState();
+            }
+        });
+
+        // Deter copy/devtools shortcuts during active test
+        document.addEventListener('contextmenu', (e) => {
+            if (testStarted && !testSubmitted && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!testStarted || testSubmitted) return;
+            const key = e.key.toLowerCase();
+            if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'j', 'c'].includes(key)) || ((e.ctrlKey || e.metaKey) && key === 'u')) {
+                e.preventDefault();
+                showToast('Інструменти розробника заблоковано', 'Краб Гоша просить розв’язувати завдання самостійно! 🦀');
+            }
+            if ((e.ctrlKey || e.metaKey) && key === 'c' && document.activeElement?.tagName !== 'INPUT') {
+                e.preventDefault();
+                showToast('Копіювання вимкнено', 'Розв’язуйте приклади у своєму зошиті!');
+            }
+        });
+
+        // --- Initialize Cloud Sync if configured ---
+        async function initCloudSync() {
+            try {
+                const fb = cfg.FIREBASE_CONFIG;
+                if (fb && fb.apiKey && fb.projectId) {
+                    const app = initializeApp(fb);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    await signInAnonymously(auth);
+                    cloudReady = true;
+                }
+            } catch (err) {
+                console.warn('Локальний режим роботи (Firebase не підключено):', err);
+            }
+        }
+        initCloudSync();
+
+        // --- Toast Notification ---
+        window.showToast = function(title, message) {
+            document.getElementById('goshaToastTitle').textContent = title;
+            document.getElementById('goshaToastMsg').textContent = message;
+            const toast = document.getElementById('goshaToast');
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 6000);
+        };
+
+        window.hideToast = function() {
+            document.getElementById('goshaToast').classList.add('hidden');
+        };
+
+        // --- Image Compression & Upload Handling ---
+        function compressImageFile(file, maxWidth = 900, quality = 0.68) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        window.handlePhotoUpload = async function(event) {
+            endSafeFilePickSoon();
+            const files = Array.from(event.target.files || []);
+            if (!files.length) return;
+
+            for (const file of files) {
+                if (attachedPhotos.length >= 4) {
+                    showToast("Ліміт фотографій", "Можна прикріпити максимум 4 фотографії зошита!");
+                    break;
+                }
+                try {
+                    const compressedDataUrl = await compressImageFile(file);
+                    attachedPhotos.push(compressedDataUrl);
+                } catch (err) {
+                    console.error("Помилка обробки фото:", err);
+                }
+            }
+            event.target.value = "";
+            renderPhotoPreviews();
+        };
+
+        window.removePhoto = function(index) {
+            attachedPhotos.splice(index, 1);
+            renderPhotoPreviews();
+        };
+
+        function renderPhotoPreviews() {
+            const container = document.getElementById('photoPreviewContainer');
+            const badge = document.getElementById('photoStatusBadge');
+            const section = document.getElementById('photoUploadSection');
+
+            if (attachedPhotos.length === 0) {
+                container.classList.add('hidden');
+                container.innerHTML = '';
+                badge.textContent = "Фото ще не додано (0)";
+                badge.className = "bg-red-500 text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow";
+                section.classList.remove('border-emerald-500');
+                section.classList.add('border-sky-500');
+                return;
+            }
+
+            badge.textContent = `Прикріплено фото: ${attachedPhotos.length} ✓`;
+            badge.className = "bg-emerald-400 text-sky-950 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow";
+            section.classList.remove('border-sky-500', 'border-red-500');
+            section.classList.add('border-emerald-500');
+
+            container.classList.remove('hidden');
+            container.innerHTML = attachedPhotos.map((src, idx) => `
+                <div class="relative group rounded-2xl overflow-hidden border-2 border-sky-300 shadow bg-slate-100 aspect-[4/3]">
+                    <img src="${src}" alt="Фото зошита ${idx + 1}" onclick="openLightbox('${src}', 'Мій зошит — Сторінка ${idx + 1}')" class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition">
+                    <span class="absolute bottom-2 left-2 bg-sky-950/80 text-white text-xs font-bold px-2 py-0.5 rounded-lg">
+                        Стор. ${idx + 1}
+                    </span>
+                    <button type="button" onclick="removePhoto(${idx})" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-md font-bold text-sm" title="Видалити фото">
+                        &times;
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // --- Lightbox Modal ---
+        window.openLightbox = function(src, caption) {
+            currentLightboxRotation = 0;
+            const img = document.getElementById('lightboxImg');
+            img.src = src;
+            img.style.transform = `rotate(0deg)`;
+            document.getElementById('lightboxCaption').textContent = caption || 'Фото обчислень';
+            const modal = document.getElementById('photoLightbox');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.rotateLightboxImage = function(deg) {
+            currentLightboxRotation = (currentLightboxRotation + deg) % 360;
+            document.getElementById('lightboxImg').style.transform = `rotate(${currentLightboxRotation}deg)`;
+        };
+
+        window.closeLightbox = function() {
+            const modal = document.getElementById('photoLightbox');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        // --- Math Answer Evaluation Helpers (Hashed Verification) ---
+        function parseFlexibleNumber(str) {
+            if (!str) return NaN;
+            const cleaned = String(str).trim().replace(',', '.');
+            if (cleaned.includes('/')) {
+                const parts = cleaned.split('/');
+                if (parts.length === 2) {
+                    const n = parseFloat(parts[0]);
+                    const d = parseFloat(parts[1]);
+                    if (!isNaN(n) && !isNaN(d) && d !== 0) return n / d;
+                }
+            }
+            return parseFloat(cleaned);
+        }
+
+        function checkSimpleFraction(key, numInputId, denInputId, maxPoints) {
+            const rawN = document.getElementById(numInputId).value.trim();
+            const rawD = document.getElementById(denInputId).value.trim();
+            const n = parseInt(rawN, 10);
+            const d = parseInt(rawD, 10);
+
+            if (isNaN(n) || isNaN(d) || d <= 0 || n <= 0) {
+                return { points: 0, status: 'wrong', userStr: rawN || rawD ? `${rawN}/${rawD}` : '—', note: 'Не заповнено або некоректний дріб' };
+            }
+            if (matchesHash(key, `${n}/${d}`)) {
+                return { points: maxPoints, status: 'correct', userStr: `${n}/${d}`, note: 'Правильно!' };
+            }
+            const g = gcd(n, d);
+            const rn = n / g;
+            const rd = d / g;
+            if (g > 1 && matchesHash(key, `${rn}/${rd}`)) {
+                const half = Math.round((maxPoints / 2) * 100) / 100;
+                return { points: half, status: 'partial', userStr: `${n}/${d}`, note: 'Дріб правильний, але не скорочений!' };
+            }
+            return { points: 0, status: 'wrong', userStr: `${n}/${d}`, note: 'Помилка в обчисленнях' };
+        }
+
+        function checkQuestion1V(maxPoints) {
+            const wRaw = document.getElementById('q1v_whole').value.trim();
+            const nRaw = document.getElementById('q1v_num').value.trim();
+            const dRaw = document.getElementById('q1v_den').value.trim();
+
+            if (wRaw && !nRaw && !dRaw) {
+                const val = parseFlexibleNumber(wRaw);
+                if (!isNaN(val)) {
+                    const norm = String(Math.round(val * 1e6) / 1e6);
+                    if (matchesHash('q1v_dec', norm)) {
+                        return { points: maxPoints, status: 'correct', userStr: wRaw, note: 'Правильно!' };
+                    }
+                }
+                return { points: 0, status: 'wrong', userStr: wRaw, note: 'Помилка в обчисленнях' };
+            }
+
+            if (!wRaw && nRaw && dRaw) {
+                const n = parseInt(nRaw, 10);
+                const d = parseInt(dRaw, 10);
+                if (!isNaN(n) && !isNaN(d) && d > 0 && n > 0) {
+                    if (matchesHash('q1v_imp', `${n}/${d}`)) {
+                        return { points: maxPoints, status: 'correct', userStr: `${n}/${d}`, note: 'Правильно (неправильний дріб)' };
+                    }
+                    const g = gcd(n, d);
+                    if (g > 1 && matchesHash('q1v_imp', `${n / g}/${d / g}`)) {
+                        return { points: 0.25, status: 'partial', userStr: `${n}/${d}`, note: 'Не скорочено / не виділено цілу частину' };
+                    }
+                }
+                return { points: 0, status: 'wrong', userStr: `${nRaw}/${dRaw}`, note: 'Помилка в обчисленнях' };
+            }
+
+            const w = parseInt(wRaw, 10);
+            const n = parseInt(nRaw, 10);
+            const d = parseInt(dRaw, 10);
+            if (!isNaN(w) && !isNaN(n) && !isNaN(d) && d > 0 && n > 0) {
+                if (matchesHash('q1v_mixed', `${w}+${n}/${d}`)) {
+                    return { points: maxPoints, status: 'correct', userStr: `${w} ${n}/${d}`, note: 'Правильно!' };
+                }
+                const g = gcd(n, d);
+                if (g > 1 && matchesHash('q1v_mixed', `${w}+${n / g}/${d / g}`)) {
+                    return { points: 0.25, status: 'partial', userStr: `${w} ${n}/${d}`, note: 'Дробову частину можна скоротити' };
+                }
+                // Check improper mixed form (e.g. total value equals 4.5)
+                const totalNum = w * d + n;
+                const tg = gcd(totalNum, d);
+                if (matchesHash('q1v_imp', `${totalNum / tg}/${d / tg}`)) {
+                    return { points: 0.25, status: 'partial', userStr: `${w} ${n}/${d}`, note: 'Правильне значення, але не зведено до правильного мішаного числа' };
+                }
+                return { points: 0, status: 'wrong', userStr: `${w} ${n}/${d}`, note: 'Помилка в обчисленнях' };
+            }
+
+            return { points: 0, status: 'wrong', userStr: '—', note: 'Не заповнено' };
+        }
+
+        function checkSingleValue(key, inputId, maxPoints, unit = '') {
+            const raw = document.getElementById(inputId).value.trim();
+            if (!raw) {
+                return { points: 0, status: 'wrong', userStr: '—', note: 'Не заповнено' };
+            }
+            const val = parseFlexibleNumber(raw);
+            if (!isNaN(val)) {
+                const norm = String(Math.round(val * 1e6) / 1e6);
+                if (matchesHash(key, norm)) {
+                    return { points: maxPoints, status: 'correct', userStr: `${raw}${unit}`, note: 'Правильно!' };
+                }
+            }
+            return { points: 0, status: 'wrong', userStr: `${raw}${unit}`, note: 'Помилка в обчисленнях' };
+        }
+
+        function highlightTaskCard(cardId, badgeId, status) {
+            const card = document.getElementById(cardId);
+            const badge = document.getElementById(badgeId);
+            if (!card || !badge) return;
+
+            card.classList.remove('border-slate-200', 'border-emerald-500', 'border-amber-500', 'border-red-400', 'bg-emerald-50/40', 'bg-red-50/40');
+            badge.classList.remove('hidden');
+
+            if (status === 'correct') {
+                card.classList.add('border-emerald-500', 'bg-emerald-50/40');
+                badge.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
+            } else if (status === 'partial') {
+                card.classList.add('border-amber-500');
+                badge.innerHTML = '<i class="fa-solid fa-circle-exclamation text-amber-500"></i>';
+            } else {
+                card.classList.add('border-red-400', 'bg-red-50/40');
+                badge.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500"></i>';
+            }
+        }
+
+        // --- Submit & Grade Action ---
+        window.submitAndGradeTest = async function() {
+            const nameInput = document.getElementById('studentName');
+            const studentName = nameInput.value.trim();
+
+            if (!studentName) {
+                const nameCard = document.getElementById('nameInputCard');
+                nameCard.classList.add('border-red-500', 'shake-error');
+                setTimeout(() => nameCard.classList.remove('shake-error'), 600);
+                nameInput.focus();
+                showToast("Вкажи своє ім'я!", "Краб Гоша просить підписати роботу: впиши своє прізвище та ім'я у верхньому полі! 🦀✍️");
+                return;
+            }
+
+            if (attachedPhotos.length === 0) {
+                const photoSec = document.getElementById('photoUploadSection');
+                photoSec.classList.remove('border-sky-500');
+                photoSec.classList.add('border-red-500', 'shake-error');
+                setTimeout(() => photoSec.classList.remove('shake-error'), 600);
+                photoSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showToast(
+                    "Стоп-клешня! Немає фото зошита 📸",
+                    "Спочатку прикріпи фото своїх обчислень у зошиті, інакше робота не зараховується! 🦀"
+                );
+                return;
+            }
+
+            const results = {
+                q1a: { label: '1а) 8/15 × 5/12', ...checkSimpleFraction('q1a', 'q1a_num', 'q1a_den', 0.5), max: 0.5 },
+                q1b: { label: '1б) 5/9 × 18', ...checkSingleValue('q1b', 'q1b_val', 0.5), max: 0.5 },
+                q1v: { label: '1в) 3 3/7 × 1 5/16', ...checkQuestion1V(0.5), max: 0.5 },
+                q1g: { label: '1г) 14/27 : 7/9', ...checkSimpleFraction('q1g', 'q1g_num', 'q1g_den', 0.5), max: 0.5 },
+                q1d: { label: '1д) 5 1/4 : 1 3/4', ...checkSingleValue('q1d', 'q1d_val', 0.5), max: 0.5 },
+                q1e: { label: '1е) 18/23 : 6', ...checkSimpleFraction('q1e', 'q1e_num', 'q1e_den', 0.5), max: 0.5 },
+                q2:  { label: '2) Дівчатка у класі', ...checkSingleValue('q2', 'q2_val', 2, ' дівч.'), max: 2 },
+                q3:  { label: '3) Довжина маршруту', ...checkSingleValue('q3', 'q3_val', 2, ' км'), max: 2 },
+                q4:  { label: '4) Виконайте дії з дробами', ...checkSingleValue('q4', 'q4_val', 2), max: 2 },
+                q5:  { label: '5) Залишок фруктів (3-й день)', ...checkSingleValue('q5', 'q5_val', 3, ' кг'), max: 3 },
+                bonus: { label: '🦀 Супер-клешня (число m)', ...checkSingleValue('bonus', 'qBonus_val', 2), max: 2 }
+            };
+
+            highlightTaskCard('card-1a', 'badge-1a', results.q1a.status);
+            highlightTaskCard('card-1b', 'badge-1b', results.q1b.status);
+            highlightTaskCard('card-1v', 'badge-1v', results.q1v.status);
+            highlightTaskCard('card-1g', 'badge-1g', results.q1g.status);
+            highlightTaskCard('card-1d', 'badge-1d', results.q1d.status);
+            highlightTaskCard('card-1e', 'badge-1e', results.q1e.status);
+            highlightTaskCard('card-2', 'badge-2', results.q2.status);
+            highlightTaskCard('card-3', 'badge-3', results.q3.status);
+            highlightTaskCard('card-4', 'badge-4', results.q4.status);
+            highlightTaskCard('card-5', 'badge-5', results.q5.status);
+            highlightTaskCard('card-bonus', 'badge-bonus', results.bonus.status);
+
+            const mainKeys = ['q1a', 'q1b', 'q1v', 'q1g', 'q1d', 'q1e', 'q2', 'q3', 'q4', 'q5'];
+            const baseScore = mainKeys.reduce((acc, k) => acc + results[k].points, 0);
+            const bonusScore = results.bonus.points;
+            const finalGrade12 = Math.min(12, Math.round((baseScore + bonusScore) * 100) / 100);
+            const nowStr = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+
+            // Finalize anti-cheat & release fullscreen lock
+            testSubmitted = true;
+            antiCheat.submitted = true;
+            antiCheat.studentName = studentName;
+            saveAntiCheatState();
+            updateStatusPills();
+
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                try {
+                    if (document.exitFullscreen) await document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+                } catch (e) { /* ignore */ }
+            }
+
+            // Lock inputs so student cannot edit after grading
+            document.querySelectorAll('#tasksContainer input').forEach(inp => inp.disabled = true);
+            document.getElementById('submitTestBtn').disabled = true;
+            document.getElementById('submitTestBtn').classList.add('opacity-60', 'cursor-not-allowed');
+
+            // Populate Student Result Card
+            document.getElementById('resultStudentName').textContent = studentName;
+            document.getElementById('resultTimestamp').textContent = `Здано о ${nowStr} • Прикріплено фото: ${attachedPhotos.length} шт.`;
+            document.getElementById('resultTotalScore').textContent = `${finalGrade12} / 12`;
+            document.getElementById('resultBonusText').textContent = bonusScore > 0
+                ? `(Основні завдання: ${baseScore} б. + Супер-клешня: +${bonusScore} б.)`
+                : `(Основні завдання: ${baseScore} з 12 б.)`;
+
+            const banner = document.getElementById('resultFeedbackBanner');
+            if (finalGrade12 >= 10) {
+                banner.textContent = "🦀 «Неймовірно! Краб Гоша аплодує обома клешнями! Ти справжній капітан дробів!»";
+            } else if (finalGrade12 >= 7) {
+                banner.textContent = "🦀 «Чудова робота! Більшість дробів підкорено, а вчитель перегляне фото твого зошита!»";
+            } else {
+                banner.textContent = "🦀 «Дякую за старання! Вчитель обов'язково подивиться твої розв'язки на фото у зошиті й підкаже, де сховалася помилка!»";
+            }
+
+            const totalV = totalViolationsCount();
+            const acSummaryEl = document.getElementById('resultAntiCheatSummary');
+            if (totalV === 0) {
+                acSummaryEl.className = 'p-3.5 rounded-2xl border bg-emerald-50 border-emerald-300 text-emerald-900 text-xs sm:text-sm font-bold flex flex-wrap items-center justify-between gap-2';
+                acSummaryEl.innerHTML = '<span><i class="fa-solid fa-shield-check text-emerald-600 mr-1.5"></i>Контроль активності: порушень не зафіксовано (робота виконана чесно).</span>';
+            } else {
+                acSummaryEl.className = 'p-3.5 rounded-2xl border bg-amber-50 border-amber-400 text-amber-950 text-xs sm:text-sm font-bold flex flex-wrap items-center justify-between gap-2';
+                acSummaryEl.innerHTML = `<span><i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1.5"></i>Журнал активності передано вчителю: перемикань вкладки — ${antiCheat.tabSwitchCount}, втрат фокусу — ${antiCheat.focusLossCount}, виходів з повного екрана — ${antiCheat.fullscreenExitCount}.</span>`;
+            }
+
+            const breakdownEl = document.getElementById('resultBreakdownGrid');
+            breakdownEl.innerHTML = Object.values(results).map(item => {
+                const colorClass = item.status === 'correct'
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                    : (item.status === 'partial' ? 'bg-amber-50 border-amber-300 text-amber-950' : 'bg-red-50 border-red-200 text-red-950');
+                return `
+                    <div class="p-3 rounded-xl border ${colorClass} flex justify-between items-center gap-2">
+                        <div>
+                            <div class="font-extrabold">${item.label}</div>
+                            <div class="text-xs opacity-85">Твоя відповідь: <strong>${item.userStr}</strong> (${item.note})</div>
+                        </div>
+                        <span class="font-black text-sm whitespace-nowrap px-2 py-1 rounded-lg bg-white/80">
+                            ${item.points} / ${item.max} б.
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            const submissionRecord = {
+                studentName,
+                baseScore,
+                bonusScore,
+                finalGrade12,
+                submittedAt: nowStr,
+                timestampMs: Date.now(),
+                results,
+                photos: attachedPhotos,
+                antiCheat: {
+                    startedAt: antiCheat.startedAt,
+                    tabSwitchCount: antiCheat.tabSwitchCount,
+                    focusLossCount: antiCheat.focusLossCount,
+                    fullscreenExitCount: antiCheat.fullscreenExitCount,
+                    totalAwaySeconds: antiCheat.totalAwaySeconds,
+                    fullscreenSupported: antiCheat.fullscreenSupported,
+                    wasReloaded: antiCheat.wasReloaded,
+                    events: antiCheat.events
+                }
+            };
+            lastSubmissionRecord = submissionRecord;
+
+            // Always save locally as same-browser fallback
+            try {
+                const existing = JSON.parse(localStorage.getItem(STORAGE_LOCAL_SUBS_KEY) || '[]');
+                existing.unshift(submissionRecord);
+                localStorage.setItem(STORAGE_LOCAL_SUBS_KEY, JSON.stringify(existing.slice(0, 30)));
+            } catch (e) { /* ignore quota */ }
+
+            // Save to Firebase Firestore if configured
+            const cloudNote = document.getElementById('cloudSaveNote');
+            let savedToCloud = false;
+            if (cloudReady && db) {
+                try {
+                    const subCol = collection(db, 'artifacts', TEST_ID, 'public', 'data', 'test_submissions');
+                    await addDoc(subCol, submissionRecord);
+                    savedToCloud = true;
+                } catch (e) {
+                    console.warn("Не вдалося зберегти у хмару:", e);
+                }
+            }
+
+            if (savedToCloud) {
+                cloudNote.innerHTML = '<i class="fa-solid fa-cloud-check text-emerald-600 mr-1"></i> Роботу, фото зошита та журнал активності автоматично передано вчителю в реальному часі.';
+            } else {
+                cloudNote.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> Хмарне збереження не активне. Натисни <strong>«Завантажити файл роботи (.json)»</strong> і надішли його вчителю, або збережи PDF.';
+            }
+
+            const resultCard = document.getElementById('studentResultCard');
+            resultCard.classList.remove('hidden');
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        window.downloadSubmissionJson = function() {
+            if (!lastSubmissionRecord) return;
+            const safeName = (lastSubmissionRecord.studentName || 'uchen').replace(/[^a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9_-]/g, '_');
+            const blob = new Blob([JSON.stringify(lastSubmissionRecord, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `robota_${safeName}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+    </script>
+</body>
+</html>
