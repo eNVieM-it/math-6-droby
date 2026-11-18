@@ -9,7 +9,7 @@ window.GOSHA_CONFIG = {
 
     // 1. GOOGLE ДИСК + GOOGLE ТАБЛИЦЯ (рекомендовано):
     // Вставте сюди URL веб-додатку Google Apps Script (https://script.google.com/macros/s/.../exec)
-    APPS_SCRIPT_URL: "",
+    APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyv_BB9Hh5FtJiayoZFCfpwIV5Jj0UHwD42CId0iQRpOjJYaNMoOtFJwal7IxzmdukQ/exec",
 
     // 2. АБО FIREBASE FIRESTORE (необов'язково, якщо використовуєте Google Диск вище):
     FIREBASE_CONFIG: {
