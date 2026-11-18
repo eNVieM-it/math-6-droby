@@ -22,5 +22,5 @@ window.GOSHA_CONFIG = {
     },
 
     // PIN-код за замовчуванням для доступу до teacher.html: 2026
-    TEACHER_PIN_HASH: "5ed5758d"
+    TEACHER_PIN_HASH: "df4730f2"
 };
