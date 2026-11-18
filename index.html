@@ -1546,28 +1546,50 @@
                 localStorage.setItem(STORAGE_LOCAL_SUBS_KEY, JSON.stringify(existing.slice(0, 30)));
             } catch (e) { /* ignore quota */ }
 
-            // Save to Firebase Firestore if configured
+            // Save to Google Drive (Apps Script) and/or Firebase Firestore if configured
             const cloudNote = document.getElementById('cloudSaveNote');
+            cloudNote.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sky-600 mr-1"></i> Надсилання роботи та фото зошита вчителю...';
+            const resultCard = document.getElementById('studentResultCard');
+            resultCard.classList.remove('hidden');
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            let savedToDrive = false;
             let savedToCloud = false;
+
+            if (cfg.APPS_SCRIPT_URL) {
+                try {
+                    const resp = await fetch(cfg.APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(submissionRecord)
+                    });
+                    const data = await resp.json();
+                    if (data && data.ok) {
+                        savedToDrive = true;
+                    }
+                } catch (e) {
+                    console.warn("Не вдалося надіслати на Google Диск:", e);
+                }
+            }
+
             if (cloudReady && db) {
                 try {
                     const subCol = collection(db, 'artifacts', TEST_ID, 'public', 'data', 'test_submissions');
                     await addDoc(subCol, submissionRecord);
                     savedToCloud = true;
                 } catch (e) {
-                    console.warn("Не вдалося зберегти у хмару:", e);
+                    console.warn("Не вдалося зберегти у Firebase:", e);
                 }
             }
 
-            if (savedToCloud) {
+            if (savedToDrive && savedToCloud) {
+                cloudNote.innerHTML = '<i class="fa-solid fa-cloud-check text-emerald-600 mr-1"></i> Роботу, фото зошита та журнал активності успішно збережено на Google Диск вчителя та в базу!';
+            } else if (savedToDrive) {
+                cloudNote.innerHTML = '<i class="fa-brands fa-google-drive text-emerald-600 mr-1"></i> Роботу, фото зошита та журнал активності успішно завантажено на Google Диск вчителя!';
+            } else if (savedToCloud) {
                 cloudNote.innerHTML = '<i class="fa-solid fa-cloud-check text-emerald-600 mr-1"></i> Роботу, фото зошита та журнал активності автоматично передано вчителю в реальному часі.';
             } else {
-                cloudNote.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> Хмарне збереження не активне. Натисни <strong>«Завантажити файл роботи (.json)»</strong> і надішли його вчителю, або збережи PDF.';
+                cloudNote.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> Хмарне збереження не активне або виникла помилка мережі. Натисни <strong>«Завантажити файл роботи (.json)»</strong> і надішли його вчителю, або збережи PDF.';
             }
-
-            const resultCard = document.getElementById('studentResultCard');
-            resultCard.classList.remove('hidden');
-            resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
         window.downloadSubmissionJson = function() {

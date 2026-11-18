@@ -103,6 +103,15 @@
                     <h2 class="text-2xl font-black mt-0.5">Здані роботи, фото зошитів та античіт-звіт</h2>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
+                    <button id="refreshDriveBtn" onclick="fetchDriveSubmissions()" class="hidden bg-amber-400 hover:bg-amber-300 text-sky-950 font-extrabold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-rotate"></i> Оновити
+                    </button>
+                    <a id="openDriveFolderLink" href="#" target="_blank" rel="noopener" class="hidden bg-sky-700 hover:bg-sky-600 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow">
+                        <i class="fa-brands fa-google-drive"></i> Папка Drive
+                    </a>
+                    <a id="openSheetLink" href="#" target="_blank" rel="noopener" class="hidden bg-sky-700 hover:bg-sky-600 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-table"></i> Таблиця
+                    </a>
                     <label class="cursor-pointer bg-sky-700 hover:bg-sky-600 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow">
                         <i class="fa-solid fa-file-import"></i> Імпорт .json
                         <input type="file" accept=".json,application/json" multiple class="hidden" onchange="importJsonSubmissions(event)">
@@ -201,12 +210,14 @@
         const EXPECTED_PIN_HASH = cfg.TEACHER_PIN_HASH || '5ed5758d'; // 2026
 
         let cloudSubmissions = [];
+        let driveSubmissions = [];
         let localSubmissions = [];
         let importedSubmissions = [];
         let currentFilter = 'all';
         let currentLightboxRotation = 0;
         let db = null;
         let isCloudMode = false;
+        let isDriveMode = Boolean(cfg.APPS_SCRIPT_URL);
 
         function fnv1a32(str) {
             let h = 0x811c9dc5;
@@ -289,8 +300,72 @@
             }
         });
 
+        window.fetchDriveSubmissions = async function() {
+            if (!cfg.APPS_SCRIPT_URL) return;
+            const badge = document.getElementById('connectionStatusBadge');
+            try {
+                badge.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-sky-500 text-white';
+                badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Завантаження з Google Диску...';
+                const url = `${cfg.APPS_SCRIPT_URL}?pinHash=${encodeURIComponent(EXPECTED_PIN_HASH)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data && data.ok) {
+                    driveSubmissions = Array.isArray(data.submissions) ? data.submissions : [];
+                    if (data.folderUrl) {
+                        const fLink = document.getElementById('openDriveFolderLink');
+                        fLink.href = data.folderUrl;
+                        fLink.classList.remove('hidden');
+                    }
+                    if (data.sheetUrl) {
+                        const sLink = document.getElementById('openSheetLink');
+                        sLink.href = data.sheetUrl;
+                        sLink.classList.remove('hidden');
+                    }
+                    document.getElementById('refreshDriveBtn').classList.remove('hidden');
+                    badge.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500 text-sky-950';
+                    badge.innerHTML = '<i class="fa-brands fa-google-drive mr-1"></i> Google Диск підключено';
+                    renderTeacherDashboard();
+                    return;
+                }
+            } catch (err) {
+                console.error('Drive fetch error:', err);
+            }
+            badge.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-red-500 text-white';
+            badge.textContent = 'Помилка читання Google Диску';
+        };
+
+        window.openDrivePhoto = async function(photoId, caption) {
+            if (!cfg.APPS_SCRIPT_URL || !photoId) return;
+            openLightbox('', `${caption} — завантаження...`);
+            try {
+                const url = `${cfg.APPS_SCRIPT_URL}?pinHash=${encodeURIComponent(EXPECTED_PIN_HASH)}&photoId=${encodeURIComponent(photoId)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data && data.ok && data.dataUrl) {
+                    document.getElementById('lightboxImg').src = data.dataUrl;
+                    document.getElementById('lightboxCaption').textContent = caption;
+                } else {
+                    document.getElementById('lightboxCaption').textContent = 'Не вдалося завантажити фото';
+                }
+            } catch (err) {
+                document.getElementById('lightboxCaption').textContent = 'Помилка завантаження фото';
+            }
+        };
+
         async function initCloudSync() {
             const badge = document.getElementById('connectionStatusBadge');
+
+            if (cfg.APPS_SCRIPT_URL) {
+                isDriveMode = true;
+                await window.fetchDriveSubmissions();
+                setInterval(() => {
+                    if (sessionStorage.getItem(TEACHER_SESSION_KEY) === '1') {
+                        window.fetchDriveSubmissions();
+                    }
+                }, 20000);
+                return;
+            }
+
             try {
                 const fb = cfg.FIREBASE_CONFIG;
                 if (fb && fb.apiKey && fb.projectId) {
@@ -328,7 +403,6 @@
         initCloudSync();
 
         function getMergedSubmissions() {
-            // Merge cloud, local, and imported avoiding duplicates by (studentName + timestampMs)
             const map = new Map();
             const add = (sub, source) => {
                 const key = `${sub.studentName || ''}__${sub.timestampMs || 0}`;
@@ -336,8 +410,9 @@
                     map.set(key, { ...sub, _source: sub._source || source });
                 }
             };
+            driveSubmissions.forEach(s => add(s, 'drive'));
             cloudSubmissions.forEach(s => add(s, 'cloud'));
-            if (!isCloudMode) {
+            if (!isCloudMode && !isDriveMode) {
                 localSubmissions.forEach(s => add(s, 'local'));
             }
             importedSubmissions.forEach(s => add(s, 'imported'));
@@ -454,16 +529,28 @@
                     </span>`;
                 }).join('');
 
-                const photosHtml = (sub.photos || []).map((photoSrc, pIdx) => `
-                    <div data-src="${escapeHtml(photoSrc)}" data-cap="Зошит: ${escapeHtml(sub.studentName)} (Фото ${pIdx + 1})"
-                         onclick="openLightbox(this.dataset.src, this.dataset.cap)"
-                         class="w-24 h-20 rounded-xl overflow-hidden border-2 border-sky-400 cursor-pointer relative group shadow-sm flex-shrink-0">
-                        <img src="${escapeHtml(photoSrc)}" alt="Зошит" class="w-full h-full object-cover group-hover:scale-105 transition">
-                        <div class="absolute inset-0 bg-sky-950/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-lg transition">
-                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                const inlinePhotos = sub.photos || [];
+                const drivePhotos = sub.drivePhotos || [];
+                const totalPhotoCount = inlinePhotos.length || drivePhotos.length;
+
+                const photosHtml = inlinePhotos.length
+                    ? inlinePhotos.map((photoSrc, pIdx) => `
+                        <div data-src="${escapeHtml(photoSrc)}" data-cap="Зошит: ${escapeHtml(sub.studentName)} (Фото ${pIdx + 1})"
+                             onclick="openLightbox(this.dataset.src, this.dataset.cap)"
+                             class="w-24 h-20 rounded-xl overflow-hidden border-2 border-sky-400 cursor-pointer relative group shadow-sm flex-shrink-0">
+                            <img src="${escapeHtml(photoSrc)}" alt="Зошит" class="w-full h-full object-cover group-hover:scale-105 transition">
+                            <div class="absolute inset-0 bg-sky-950/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-lg transition">
+                                <i class="fa-solid fa-magnifying-glass-plus"></i>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('')
+                    : drivePhotos.map((dp, pIdx) => `
+                        <button type="button" data-pid="${escapeHtml(dp.id)}" data-cap="Зошит: ${escapeHtml(sub.studentName)} (Фото ${pIdx + 1})"
+                             onclick="openDrivePhoto(this.dataset.pid, this.dataset.cap)"
+                             class="px-3 py-2 rounded-xl border-2 border-sky-400 bg-sky-50 hover:bg-sky-100 text-sky-900 font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-image text-sky-600"></i> Фото ${pIdx + 1}
+                        </button>
+                    `).join('');
 
                 const hasIssues = ac.totalViolations > 0 || ac.reloaded;
                 const acBanner = hasIssues
@@ -522,10 +609,11 @@
                         <div class="bg-white p-3 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
                             <div class="flex items-center gap-2 text-xs font-extrabold text-sky-900 uppercase">
                                 <i class="fa-solid fa-camera text-sky-600 text-base"></i>
-                                Прикріплені фото зошита (${(sub.photos || []).length} шт.) — натисніть для збільшення:
+                                Прикріплені фото зошита (${totalPhotoCount} шт.) — натисніть для збільшення:
                             </div>
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 ${photosHtml}
+                                ${sub.driveFolderUrl ? `<a href="${escapeHtml(sub.driveFolderUrl)}" target="_blank" rel="noopener" class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 hover:bg-emerald-100 font-bold text-xs flex items-center gap-1.5"><i class="fa-brands fa-google-drive"></i> Папка учня</a>` : ''}
                             </div>
                         </div>
                     </div>
